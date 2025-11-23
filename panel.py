@@ -189,20 +189,17 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
 
             ###################################
             ## Check if module is installed
-            path_4dhuman_code = os.path.join(hubmocap_prop.path_4dhumans,'4dhumans','4D-Humans-main')
-            path_4dhuman_python = os.path.join(hubmocap_prop.path_4dhumans,'4dhumans','python_embedded')
+            # box = layout.box()
+            # col = box.column(align=True)
+            # row = col.row(align=True)
+            col.prop(hubmocap_prop, "module_4dhumans_install", text="Install Options",toggle=True)
 
-            chk_4dhumans_code = os.path.exists(path_4dhuman_code)
-            chk_4dhumans_python = os.path.exists(path_4dhuman_python)
-            
-            if not chk_4dhumans_code or not chk_4dhumans_python:
-                box = layout.box()
-                col = box.column(align=True)
-                row = col.row(align=True)
+            if hubmocap_prop.module_4dhumans_install:
                 col.label(text="Get the Module")
                 
                 op = col.operator("wm.url_open", text="Gumroad (PAID)", icon='TAG')
                 op.url = "https://carlosedubarreto.gumroad.com/l/py_embed_4dhumans"
+
                 
 
 
@@ -226,8 +223,8 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 if scene.zip_progress_val > 0.0 and scene.zip_progress_val < 100.0:
                     col.enabled = True
                     col.prop(scene, "zip_progress_val", text="Progress", slider=True)
-            else:
-                col.label(text="4DHumans is installed")
+            # else:
+            #     col.label(text="4DHumans is installed")
             ###################################
 
 
@@ -240,63 +237,69 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
             chk_4dhumans_smpl_file1 = os.path.exists(path_4dhuman_smpl_file1)
             chk_4dhumans_smpl_file2 = os.path.exists(path_4dhuman_smpl_file2)
 
-            if not chk_4dhumans_smpl_file1 or not chk_4dhumans_smpl_file2:
-                box = layout.box()
-                col = box.column(align=True)
-                row = col.row(align=True)
-                
-                if not hubmocap_prop.SMPLify_register and not hubmocap_prop.SMPLify_download:
-                    long_text1 = "You need to register to download the SMPLify PKL file. "
-                    long_text2 = "If you are not registered, choose the REGISTER button to get to the SMPL register site."
-                    long_text3 = "If you have a registration, choose the DOWNLOAD button and insert your email and password to download the SMPL PKL file."
-                    _label_multiline(context, long_text1, col)
-                    col.separator()
-                    _label_multiline(context, long_text2, col)
-                    col.separator()
-                    _label_multiline(context, long_text3, col)
-                
-                ###########################
-                ## Download SMPLify PKL
-                row.prop(hubmocap_prop,'SMPLify_register',text="Register", icon='WORDWRAP_ON', toggle=True)
-                row.prop(hubmocap_prop,'SMPLify_download',text="Download", icon='EVENT_DOWN_ARROW', toggle=True)
+            if hubmocap_prop.module_4dhumans_install:
 
-                if hubmocap_prop.SMPLify_register:
-                    op = layout.operator("wm.url_open", text="Register on SMPLify", icon='GREASEPENCIL')
-                    op.url = "https://smplify.is.tue.mpg.de/register.php"
-
-                if hubmocap_prop.SMPLify_download:
-                    # hubmocap_prop.SMPLify_email
-                    # hubmocap_prop.SMPLify_password
-
-                    col.prop(hubmocap_prop,'SMPL_email',text="Email")
-                    col.prop(hubmocap_prop,'SMPL_password',text="Password")
-
-                    # col.operator("hubmocap.smplify_download", text="Download SMPL PKL", icon='EVENT_DOWN_ARROW')
-                    down_smpl = col.operator('hubmocap.async_download_post', text="Download SMPL PKL", icon='EVENT_DOWN_ARROW')
-                    down_smpl.url = "https://download.is.tue.mpg.de/download.php?domain=smplify&sfile=mpips_smplify_public_v2.zip&resume=1"
-
+                if not chk_4dhumans_smpl_file1 or not chk_4dhumans_smpl_file2:
+                    box = layout.box()
+                    col = box.column(align=True)
+                    row = col.row(align=True)
                     
-                    down_smpl.target_path = os.path.join(hubmocap_prop.path_4dhumans,'temp','mpips_smplify_public_v2.zip')
+                    if not hubmocap_prop.SMPLify_register and not hubmocap_prop.SMPLify_download:
+                        long_text1 = "You need to register to download the SMPLify PKL file. "
+                        long_text2 = "If you are not registered, choose the REGISTER button to get to the SMPL register site."
+                        long_text3 = "If you have a registration, choose the DOWNLOAD button and insert your email and password to download the SMPL PKL file."
+                        _label_multiline(context, long_text1, col)
+                        col.separator()
+                        _label_multiline(context, long_text2, col)
+                        col.separator()
+                        _label_multiline(context, long_text3, col)
+                    
+                    ###########################
+                    ## Download SMPLify PKL
+                    row.prop(hubmocap_prop,'SMPLify_register',text="Register", icon='WORDWRAP_ON', toggle=True)
+                    row.prop(hubmocap_prop,'SMPLify_download',text="Download", icon='EVENT_DOWN_ARROW', toggle=True)
 
-                    # layout.separator()
-        
-                    # Display Status
-                    layout.label(text=f"Status: {scene.dl_status}")
-                    
-                    # Display Progress Bar
-                    col = layout.column()
-                    if scene.dl_status != 'Download Complete!':
-                        col.prop(scene, "dl_progress", text="Progress", slider=True)
-                    
-                    col_setup = col.column(align=True) # Setup SMPL
-                    if not os.path.exists(os.path.join(hubmocap_prop.path_4dhumans,'temp','mpips_smplify_public_v2.zip')):
-                        col_setup.enabled = False
-                    ssmpl = col_setup.operator("hubmocap.setup_smpl")
-                    ssmpl.module_id = '4dhumans'
-                    ssmpl.zip_path = os.path.join(hubmocap_prop.path_4dhumans,'temp','mpips_smplify_public_v2.zip')
-                    ssmpl.wanted_files = json.dumps(['smplify_public/code/models/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl']) #
-                    ssmpl.tmp_folder = os.path.join(hubmocap_prop.path_4dhumans,'temp')
-                    ssmpl.extract_to = os.path.join(hubmocap_prop.path_4dhumans,'4dhumans','.cache')
+                    if hubmocap_prop.SMPLify_register:
+                        op = layout.operator("wm.url_open", text="Register on SMPLify", icon='GREASEPENCIL')
+                        op.url = "https://smplify.is.tue.mpg.de/register.php"
+
+                    if hubmocap_prop.SMPLify_download:
+                        # hubmocap_prop.SMPLify_email
+                        # hubmocap_prop.SMPLify_password
+
+                        col.prop(hubmocap_prop,'SMPL_email',text="Email")
+                        col.prop(hubmocap_prop,'SMPL_password',text="Password")
+
+                        # col.operator("hubmocap.smplify_download", text="Download SMPL PKL", icon='EVENT_DOWN_ARROW')
+                        down_smpl = col.operator('hubmocap.async_download_post', text="Download SMPL PKL", icon='EVENT_DOWN_ARROW')
+                        down_smpl.url = "https://download.is.tue.mpg.de/download.php?domain=smplify&sfile=mpips_smplify_public_v2.zip&resume=1"
+
+                        
+                        down_smpl.target_path = os.path.join(hubmocap_prop.path_4dhumans,'temp','mpips_smplify_public_v2.zip')
+
+                        # layout.separator()
+            
+                        # Display Status
+                        layout.label(text=f"Status: {scene.dl_status}")
+                        
+                        # Display Progress Bar
+                        col = layout.column()
+                        if scene.dl_status != 'Download Complete!':
+                            col.prop(scene, "dl_progress", text="Progress", slider=True)
+                        
+                        col_setup = col.column(align=True) # Setup SMPL
+                        if not os.path.exists(os.path.join(hubmocap_prop.path_4dhumans,'temp','mpips_smplify_public_v2.zip')):
+                            col_setup.enabled = False
+                        ssmpl = col_setup.operator("hubmocap.setup_smpl")
+                        ssmpl.module_id = '4dhumans'
+                        ssmpl.zip_path = os.path.join(hubmocap_prop.path_4dhumans,'temp','mpips_smplify_public_v2.zip')
+                        ssmpl.wanted_files = json.dumps(['smplify_public/code/models/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl']) #
+                        ssmpl.tmp_folder = os.path.join(hubmocap_prop.path_4dhumans,'temp')
+                        ssmpl.extract_to = os.path.join(hubmocap_prop.path_4dhumans,'4dhumans','.cache')
+                else:
+                    col = layout.column(align=True)
+                    row = col.row(align=True)
+                    row.label(text="SMPLify PKL file is already Installed.")
 
 
 
@@ -350,6 +353,12 @@ class CEB_HubMocapSettings(PropertyGroup):
         default=False,
         update=updt_button_gvhmr
     ) # type: ignore
+
+    module_4dhumans_install: BoolProperty(
+        name="4DHumans Install",
+        description="View 4DHumans Install Controls",
+        default=False,
+    ) # type: ignore
     ##############################################
 
     #######################################################
@@ -390,7 +399,7 @@ class CEB_HubMocapSettings(PropertyGroup):
         subtype="FILE_PATH",
     ) # type: ignore
     int_tot_character: IntProperty(name='Total of Characters',default=0,min=0) # type: ignore
-    int_character: IntProperty(name='Character',default=1, min=1)
+    int_character: IntProperty(name='Character',default=1, min=1) # type: ignore
 
 
     #########################################

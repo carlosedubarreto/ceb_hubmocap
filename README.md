@@ -48,5 +48,11 @@ Press the **Import Mocap** to load the result in blender.
 
 Done.
 
+## Troubleshooting:
+- Its possible that you need Microsoft C++ redistributable to be installed. It will show on the blender console an error with the link  https://aka.ms/vs/16/release/vc_redist.x64.exe If you got this error, you just need to install this file and run again
+- On my vistual machine, I was having a problem where it couldnt download the file https://download.pytorch.org/models/resnet50-19c8e357.pth In this case, take a look on the error in the blender console to see where you should save the file. After saving the file there, please run again, now it should work.
+
+
+
 ## PS.:
 Sorry for making the modules a paid product. I'm trying alternatives to make the coding of addons viable.
