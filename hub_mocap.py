@@ -282,8 +282,13 @@ class OT_AsyncUnzip(bpy.types.Operator):
         # zip_file = os.path.join(base_path, "test.zip")
         # output_dir = os.path.join(base_path, "unzipped_content")
 
-        zip_file = hubmocap_prop.path_4dhumans_zip
-        output_dir = hubmocap_prop.path_4dhumans
+        if hubmocap_prop.module_4dhumans:
+            zip_file = hubmocap_prop.path_4dhumans_zip
+            output_dir = hubmocap_prop.path_4dhumans
+
+        if hubmocap_prop.module_gvhmr:
+            zip_file = hubmocap_prop.path_gvhmr_zip
+            output_dir = hubmocap_prop.path_gvhmr
 
         # Reset state
         context.scene.zip_progress_val = 0.0
@@ -302,6 +307,39 @@ class OT_AsyncUnzip(bpy.types.Operator):
 #### END Azync unzip
 ###################################################
 
+
+
+########################
+### Simple Unzip
+def unzip_file(zip_path, extract_to):
+    """
+    Extracts all contents of a ZIP file to a specified directory.
+
+    Args:
+        zip_path (str): The path to the ZIP file.
+        extract_to (str): The directory where contents will be extracted.
+    """
+    
+    # 1. Ensure the destination directory exists
+    os.makedirs(extract_to, exist_ok=True)
+    
+    try:
+        # 2. Open the ZIP file in 'read' mode ('r')
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            print(f"Extracting contents of '{zip_path}' to '{extract_to}'...")
+            
+            # 3. Extract all files
+            zip_ref.extractall(extract_to)
+            
+            print("Extraction complete!")
+            
+    except zipfile.BadZipFile:
+        print(f"Error: The file '{zip_path}' is not a valid ZIP file or is corrupted.")
+    except FileNotFoundError:
+        print(f"Error: The file '{zip_path}' was not found.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+#####################
 
 class module_4dhumans_Execute(Operator):
     bl_idname = "hubmocap.4dhumans_execute"
@@ -376,6 +414,7 @@ class setup_smpl(Operator):
     def execute(self,context):
         hubmocap_prop = context.scene.hubmocap_prop
 
+        ###### 4dhumans
         if self.module_id=='4dhumans':
             zip_path = self.zip_path
             tmp_folder = self.tmp_folder
@@ -389,8 +428,52 @@ class setup_smpl(Operator):
             for file in wanted_files:
                 shutil.move(os.path.join(tmp_folder,file),extract_to)
 
-            shutil.rmtree(tmp_folder)
+            # shutil.rmtree(tmp_folder)
             print("Move Done!")
+        
+        ###### GVHMR - SMPL
+        if self.module_id=='gvhmr_smpl':
+            zip_path = self.zip_path
+            tmp_folder = self.tmp_folder
+            extract_to = self.extract_to
+
+            wanted_files = json.loads(self.wanted_files)
+
+            shutil.unpack_archive(zip_path, tmp_folder)
+            print("Unzip Done!")
+
+            os.makedirs(extract_to, exist_ok=True)
+
+            for file in wanted_files:
+                shutil.move(os.path.join(tmp_folder,file),extract_to)
+            
+            # Rename files:
+            rename_smpl = [
+                            ['basicmodel_f_lbs_10_207_0_v1.1.0.pkl','SMPL_FEMALE.pkl'],
+                            ['basicmodel_m_lbs_10_207_0_v1.1.0.pkl','SMPL_MALE.pkl'],
+                            ['basicmodel_neutral_lbs_10_207_0_v1.1.0.pkl','SMPL_NEUTRAL.pkl']
+                            ]
+
+            for file in rename_smpl:
+                os.rename(os.path.join(extract_to,file[0]),os.path.join(extract_to,file[1]))
+            # shutil.rmtree(tmp_folder)
+            print("Move Done!")
+
+        ###### GVHMR - SMPLX
+        if self.module_id=='gvhmr_smplx':
+            zip_path = self.zip_path
+            tmp_folder = self.tmp_folder
+            extract_to = self.extract_to
+
+            wanted_files = json.loads(self.wanted_files)
+
+            shutil.unpack_archive(zip_path, tmp_folder)
+            print("Unzip Done!")
+
+            os.makedirs(extract_to, exist_ok=True)
+
+            for file in wanted_files:
+                shutil.move(os.path.join(tmp_folder,file),extract_to)
 
         return{'FINISHED'}
 #######################################
@@ -542,6 +625,15 @@ class BackgroundRunner:
             if kind == "log":
                 self.last_log = msg
                 print(msg)
+                tot_people_split = msg.split('How many people in the video? ')
+                if len(tot_people_split) >1:
+                    int_tot_people = int(tot_people_split[1])
+                    int_people = bpy.context.scene.hubmocap_prop.int_character_gvhmr
+                    bpy.context.scene.hubmocap_prop.int_tot_character_gvhmr = int_tot_people
+                    # Make sure that the character to process is not higher than what is in the footage
+                    if int_people > int_tot_people:
+                        bpy.context.scene.hubmocap_prop.int_character_gvhmr = int_tot_people
+
                 self._flag_redraw()
             elif kind == "error":
                 self.last_log = msg
@@ -623,18 +715,18 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
         name="Module",
         default="4dhumans",
         description="Mocap module to run"
-    ) # type: ignore # '4dhumans', 'gvhmr'
+    ) # type: ignore # '4dhumans', 'gvhmr', 'gvhmr_ckpt'
 
     def execute(self, context):
         if self.module == '4dhumans':
             hubmocap_prop = context.scene.hubmocap_prop
             path_4dhumans = hubmocap_prop.path_4dhumans
-            path_4dhumans_code = os.path.join(path_4dhumans,'4dhumans','4D-Humans-main')
+            path_code = os.path.join(path_4dhumans,'4dhumans','4D-Humans-main')
            
             ### Trecho para copiar o arquivo de video 
             video = hubmocap_prop.path_4dhumans_video_input
             ### limpar pasta destino e copiar o caminho acima pra la
-            video_destination = os.path.join(path_4dhumans_code,'example_data','videos')
+            video_destination = os.path.join(path_code,'example_data','videos')
             
             if os.path.exists(video_destination):
                 shutil.rmtree(video_destination)
@@ -646,7 +738,7 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             src = video
             dst = os.path.join(video_destination,'video.mp4')
             shutil.copyfile(src,dst)
-            output_folder = os.path.join(path_4dhumans_code,'outputs')
+            output_folder = os.path.join(path_code,'outputs')
             
             if os.path.exists(output_folder):
                 shutil.rmtree(output_folder)
@@ -660,12 +752,124 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
             # os.chdir(path_4dhumans_code)
             command = '../python_embedded/python.exe track.py video.source="example_data/videos/video.mp4"'
+        
+        if self.module == 'gvhmr_ckpt_dpvo': #downloading gvhmr checkpoints
+            hubmocap_prop = context.scene.hubmocap_prop
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
+
+            path = os.path.join(path_code,'inputs','checkpoints','dpvo','dpvo.pth')
+            # path_dpvo = os.path.join(path_code,'dpvo.pth')
+            if not os.path.exists(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            # Dwonloading DPVO.pth checkpoint
+            command = f'../python_embedded/python.exe ../gdown_file.py 1DE5GVftRCfZOTMp8YWF0xkGudDxK0nr0 {path}'
+
+        if self.module == 'gvhmr_ckpt_gvhmr': #downloading gvhmr checkpoints
+            hubmocap_prop = context.scene.hubmocap_prop
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
+
+            path = os.path.join(path_code,'inputs','checkpoints','gvhmr','gvhmr_siga24_release.ckpt')
+            # path_dpvo = os.path.join(path_code,'dpvo.pth')
+            if not os.path.exists(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            # Dwonloading DPVO.pth checkpoint
+            command = f'../python_embedded/python.exe ../gdown_file.py 1c9iCeKFN4Kr6cMPJ9Ss6Jdc3SZFnO5NP {path}'
+
+        
+        if self.module == 'gvhmr_ckpt_hmr2': #downloading hmr2 checkpoints
+            hubmocap_prop = context.scene.hubmocap_prop
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
+
+            path = os.path.join(path_code,'inputs','checkpoints','hmr2','epoch=10-step=25000.ckpt')
+            # path_dpvo = os.path.join(path_code,'dpvo.pth')
+            if not os.path.exists(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            # Dwonloading DPVO.pth checkpoint
+            command = f'../python_embedded/python.exe ../gdown_file.py 1X5hvVqvqI9tvjUCb2oAlZxtgIKD9kvsc {path}'
+
+
+        if self.module == 'gvhmr_ckpt_vitpose': #downloading vitpose checkpoints
+            hubmocap_prop = context.scene.hubmocap_prop
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
+
+            path = os.path.join(path_code,'inputs','checkpoints','vitpose','vitpose-h-multi-coco.pth')
+            # path_dpvo = os.path.join(path_code,'dpvo.pth')
+            if not os.path.exists(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            # Dwonloading DPVO.pth checkpoint
+            command = f'../python_embedded/python.exe ../gdown_file.py 1sR8xZD9wrZczdDVo6zKscNLwvarIRhP5 {path}'
+
+
+        if self.module == 'gvhmr_ckpt_yolo': #downloading yolo checkpoints
+            hubmocap_prop = context.scene.hubmocap_prop
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
+
+            path = os.path.join(path_code,'inputs','checkpoints','yolo','yolov8x.pt')
+            # path_dpvo = os.path.join(path_code,'dpvo.pth')
+            if not os.path.exists(path):
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+            # Dwonloading DPVO.pth checkpoint
+            command = f'../python_embedded/python.exe ../gdown_file.py 1_HGm-lqIH83-M1ML4bAXaqhm_eT2FKo5 {path}'
+
+        
+        if self.module == 'gvhmr':
+            hubmocap_prop = context.scene.hubmocap_prop
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main') 
+           
+            ### Trecho para copiar o arquivo de video 
+            video = hubmocap_prop.path_gvhmr_video_input
+            ### limpar pasta destino e copiar o caminho acima pra la
+            video_destination = os.path.join(path_code,'docs','example_video')
+            prev_video = hubmocap_prop.path_gvhmr_prev_video_input
+            # src = self.filepath
+            if prev_video != video:
+            
+                if os.path.exists(video_destination):
+                    shutil.rmtree(video_destination)
+                    os.makedirs(video_destination)
+                else:
+                    os.makedirs(video_destination)
+
+                hubmocap_prop.int_tot_character_gvhmr = -1
+                print("Video changed, copying the new one")
+                src = video
+                dst = os.path.join(video_destination,'video.mp4')
+                shutil.copyfile(src,dst)
+                output_folder = os.path.join(path_code,'outputs')
+                print('Erasing the output folder')
+                
+                if os.path.exists(output_folder):
+                    shutil.rmtree(output_folder)
+                    os.makedirs(output_folder, exist_ok=True)
+                else:
+                    os.makedirs(output_folder, exist_ok=True)
+
+
+            ###### Clean the character number forcing the person to click the update button
+            # hubmocap_prop.int_tot_character = 0 ## its negative to use with a parameter on the panel to hide the number
+            int_char_number = hubmocap_prop.int_character_gvhmr
+            int_fps = hubmocap_prop.int_fps_gvhmr
+
+            # os.chdir(path_4dhumans_code)
+            command = f'../python_embedded/python tools/demo/demo.py --video=docs/example_video/video.mp4 -s --fps {int_fps} -p {int_char_number}'
+            hubmocap_prop.path_gvhmr_prev_video_input = video #set the video for the next execution, if its the same video the output folder wont be erased
 
 
 
 
         cmd_list = command.split()
-        RUNNER.start_subprocess(path_4dhumans_code,cmd_list)
+        RUNNER.start_subprocess(path_code,cmd_list)
         # os.chdir(current_folder)
         self.report({'INFO'}, "Started subprocess in background.")
         return {'FINISHED'}
@@ -698,7 +902,7 @@ class ImportCharacter(Operator):
     bl_description = "Import character"
     bl_options = {'UNDO'}
 
-    option: IntProperty(name='Option',default=0) # type: ignore 
+    option: IntProperty(name='Option',default=0) # type: ignore  0=4dhumans, 1=gvhmr
 
     def execute(self,context):
 
@@ -714,10 +918,20 @@ class ImportCharacter(Operator):
         import pickle
 
         hubmocap_prop = context.scene.hubmocap_prop
-        path_4dhumans = hubmocap_prop.path_4dhumans
-        
-        base_file = os.path.join(path_4dhumans,'4dhumans','4D-Humans-main','outputs','results')
-        file = os.path.join(base_file,'demo_video.pkl')
+
+        if self.option == 0:
+            path_4dhumans = hubmocap_prop.path_4dhumans
+
+            path_4dhumans = hubmocap_prop.path_4dhumans
+            base_file = os.path.join(path_4dhumans,'4dhumans','4D-Humans-main','outputs','results')
+            file = os.path.join(base_file,'demo_video.pkl')
+        elif self.option == 1:
+            path_gvhmr = hubmocap_prop.path_gvhmr
+            int_char = hubmocap_prop.int_character_gvhmr
+            path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
+            base_file = os.path.join(path_code,'outputs','demo','video')
+            # file = os.path.join(base_file,'hmr4d_results.pt.pkl')
+            file = os.path.join(base_file,'hmr4d_results.pt'+'_person-'+str(int_char)+".pkl")
        
         with open(file, 'rb') as handle:
             results = pickle.load(handle)
@@ -739,9 +953,24 @@ class ImportCharacter(Operator):
                             }
         gender = 'n'
 
+        def Rodrigues(rotvec):
+            theta = np.linalg.norm(rotvec)
+            r = (rotvec/theta).reshape(3, 1) if theta > 0. else rotvec
+            cost = np.cos(theta)
+            mat = np.asarray([[0, -r[2], r[1]],
+                            [r[2], 0, -r[0]],
+                            [-r[1], r[0], 0]],dtype=object) #adicionei "",dtype=object" por que estava dando erro
+            return(cost*np.eye(3) + (1-cost)*r.dot(r.T) + np.sin(theta)*mat)
+
+
 
         def rodrigues2bshapes(body_pose):
-            mat_rots = body_pose
+            if self.option == 0: #4dhumans
+                mat_rots = body_pose
+            elif self.option == 1: #gvhmr
+                rod_rots = np.asarray(body_pose).reshape(22, 3)
+                mat_rots = [Rodrigues(rod_rot) for rod_rot in rod_rots]
+                
             bshapes = np.concatenate([(mat_rot - np.eye(3)).ravel()
                                     for mat_rot in mat_rots[1:]])
             return(mat_rots, bshapes)
@@ -753,7 +982,10 @@ class ImportCharacter(Operator):
             mrots, bsh = rodrigues2bshapes(body_pose)
 
             part_bones  = part_match_custom_less2
-            trans = Vector((trans[0],trans[1]-2.2,0)) # o -2 é para tentar colocar o personagem no chao ao inves de ficar sob o chao
+            if self.option == 0: #4dhumans
+                trans = Vector((trans[0],trans[1]-2.2,0)) # o -2 é para tentar colocar o personagem no chao ao inves de ficar sob o chao
+            elif self.option == 1: #GVHMR
+                trans = Vector((trans[0],trans[1]-1.31,trans[2])) # o -2 é para tentar colocar o personagem no chao ao inves de ficar sob o chao
             # if fourd_prop.bool_fix_z:
             #     trans = Vector((trans[0],trans[1]-2.2,0)) # o -2 é para tentar colocar o personagem no chao ao inves de ficar sob o chao
             # else:
@@ -784,6 +1016,8 @@ class ImportCharacter(Operator):
 
             path_fbx = os.path.join(path_addon,smpl_model)
             bpy.ops.import_scene.fbx(filepath=path_fbx, axis_forward='-Y', axis_up='-Z', global_scale=100)
+            if self.option == 1: #GVHMR
+                context.scene.render.fps = hubmocap_prop.int_fps_gvhmr
 
             obj_gender = 'm'
             obname = '%s_avg' % obj_gender
@@ -831,20 +1065,55 @@ class ImportCharacter(Operator):
         # Armature_obj = obs[len(obs)-1]
         view_layer.objects.active = arm_ob
 
-        for fframe, data in enumerate(results.items()):
-            # print('characters_index max:',len(data[1]['smpl'])-1)
-            if character <= len(data[1]['smpl'])-1:
-                scene.frame_set(fframe)
+        if self.option == 0: #4dhumans
+            for fframe, data in enumerate(results.items()):
+                # print('characters_index max:',len(data[1]['smpl'])-1)
+                if character <= len(data[1]['smpl'])-1:
+                    scene.frame_set(fframe)
+                    # trans = [0.0, 0.0, 1.521]
+                    trans = data[1]['camera'][character]
+                    shape = data[1]['smpl'][character]['betas']
+                    global_orient = data[1]['smpl'][character]['global_orient']
+                    body_pose = data[1]['smpl'][character]['body_pose']
+                    final_body_pose = np.vstack([global_orient, body_pose])
+                    apply_trans_pose_shape(Vector(trans), final_body_pose, shape, obj,arm_ob, obname, scene, cam_ob, fframe)
+                    bpy.context.view_layer.update()
+                else:
+                    print('skipping to the next')
+        
+        if self.option == 1: #gvhmr
+            qtd_frames = len(results['smpl_params_global']['transl'])
+
+            print('qtd frames: ',qtd_frames)
+            # shape = results[character]['betas'].tolist()
+            for fframe in range(0,qtd_frames):
+                bpy.context.scene.frame_set(fframe)
+                #print('data',data)
                 # trans = [0.0, 0.0, 1.521]
-                trans = data[1]['camera'][character]
-                shape = data[1]['smpl'][character]['betas']
-                global_orient = data[1]['smpl'][character]['global_orient']
-                body_pose = data[1]['smpl'][character]['body_pose']
-                final_body_pose = np.vstack([global_orient, body_pose])
+                trans = results['smpl_params_global']['transl'][fframe]
+                # shape = data[1]['smpl'][character]['betas']
+                #
+                global_orient = results['smpl_params_global']['global_orient'][fframe]
+                # pelvis = fixed_pelvis_quat[fframe]
+                # global_orient = np.array(Quaternion(pelvis).to_matrix()).reshape(1,3,3)
+                #
+                ##o trtamento abaixo nao deu certo
+                # rotation_x = Matrix.Rotation(math.radians(180.0),3,'X') #rodar ao redor de X
+                # rotation_y = Matrix.Rotation(math.radians(90.0),3,'Y') #rodar ao redor de X
+                # global_orient = global_orient @ rotation_x @rotation_y
+                #
+                body_pose = results['smpl_params_global']['body_pose'][fframe]
+                body_pose_fim = body_pose.reshape(int(len(body_pose)/3), 3)
+                final_body_pose = np.vstack([global_orient, body_pose_fim])
+                # apply_trans_pose_shape(Vector(trans), final_body_pose, shape, obj,arm_ob, obname, scene, cam_ob, fframe)
+                #
+                #
+                # apply_trans_pose_shape(Vector(trans), final_body_pose, arm_ob, obname, fframe)
+                shape= []
                 apply_trans_pose_shape(Vector(trans), final_body_pose, shape, obj,arm_ob, obname, scene, cam_ob, fframe)
+
                 bpy.context.view_layer.update()
-            else:
-                print('skipping to the next')
+
             
 
         print('antes_arm_ob: ',arm_ob.name)
@@ -876,16 +1145,19 @@ class ImportCharacter(Operator):
 
 
         arm_ob.pose.bones['m_avg_Pelvis'].constraints.new('COPY_LOCATION')
-        # arm_ob.pose.bones["m_avg_Pelvis"].constraints["Copy Location"].target = armature_ref
-        arm_ob.pose.bones["m_avg_Pelvis"].constraints[0].target = armature_ref
+        if self.option == 0: #4dhumans
+            arm_ob.pose.bones["m_avg_Pelvis"].constraints[0].target = armature_ref
+        elif self.option == 1: #gvhmr
+            arm_ob.pose.bones["m_avg_Pelvis"].constraints[0].target = arm_ob
         arm_ob.pose.bones["m_avg_Pelvis"].constraints[0].subtarget = "m_avg_Pelvis"
-        # arm_ob.pose.bones["m_avg_Pelvis"].constraints["Copy Location"].subtarget = "m_avg_Pelvis"
+        
 
         
         arm_ob.pose.bones['m_avg_Pelvis'].constraints.new('COPY_ROTATION')
-        # arm_ob.pose.bones["m_avg_Pelvis"].constraints["Copy Rotation"].target = armature_ref
-        arm_ob.pose.bones["m_avg_Pelvis"].constraints[1].target = armature_ref
-        # arm_ob.pose.bones["m_avg_Pelvis"].constraints["Copy Rotation"].subtarget = "m_avg_Pelvis"
+        if self.option == 0: #4dhumans
+            arm_ob.pose.bones["m_avg_Pelvis"].constraints[1].target = armature_ref
+        elif self.option == 1: #gvhmr
+            arm_ob.pose.bones["m_avg_Pelvis"].constraints[1].target = arm_ob
         arm_ob.pose.bones["m_avg_Pelvis"].constraints[1].subtarget = "m_avg_Pelvis"
 
 
@@ -924,3 +1196,71 @@ class ImportCharacter(Operator):
 
 
         return{'FINISHED'}
+    
+
+
+class gvhmr_download_github(Operator):
+    bl_idname = "hubmocap.gvhmr_download_github"
+    bl_label = "Download Github Code"
+    bl_description = "Download Github Code"
+    bl_options = {'UNDO'}
+
+
+    def execute(self, context):
+        print('Downloading Github Code')
+
+        hubmocap_prop = context.scene.hubmocap_prop
+        
+
+        url = 'https://github.com/carlosedubarreto/GVHMR/archive/refs/heads/main.zip'
+        filename = os.path.join(hubmocap_prop.path_gvhmr,'gvhmr','GVHMR-main.zip')
+
+        response = requests.get(url)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # 'wb' means Write Binary (important for images, pdfs, zips)
+            with open(filename, 'wb') as file:
+                file.write(response.content)
+            print(f"Downloaded {filename}")
+        else:
+            print(f"Failed to download. Status code: {response.status_code}")
+
+
+
+        zip_file_path = filename
+        destination_directory = os.path.join(hubmocap_prop.path_gvhmr,'gvhmr')
+        unzip_file(zip_file_path, destination_directory)
+
+        
+
+        # current_path = os.getcwd()
+        # os.chdir(destination_directory)
+        ### Installing GVHMR after unziping the file
+
+        # Define the specific folder path you want to open in
+        target_directory = os.path.join(hubmocap_prop.path_gvhmr,'gvhmr','GVHMR-main')
+        # Ensure the directory exists before trying to open the console there (optional but recommended)
+        if not os.path.exists(target_directory):
+            print(f"Directory not found: {target_directory}")
+        else:
+            # Use Popen to launch cmd.exe
+            # We still use cmd /k "echo..." to keep the console window open
+            # The 'cwd' parameter sets the starting directory for the new process
+            subprocess.Popen(
+                ['cmd.exe', '/k', '..\\python_embedded\\python -m pip install -e .'], # /k keeps the window open
+                # ['cmd.exe', '/c', '..\\python_embedded\\python -m pip install -e .'], # /c it closes the window when its done
+                cwd=target_directory,
+                creationflags=subprocess.CREATE_NEW_CONSOLE
+            )
+        # try:
+        #     command = 'python_embedded/python -m pip install -e .'
+        #     cmd_list = command.split()
+        #     subprocess.run(cmd_list)
+        # except Exception as e:
+        #     self.report({'ERROR'}, f"Failed, error: {e}")
+
+
+        # os.chdir(current_path)
+        return{'FINISHED'}
+    

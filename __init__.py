@@ -9,7 +9,7 @@ bl_info = {
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (4, 4, 0),
-    "version" : (0, 1, 0),
+    "version" : (0, 2, 0),
     "location" : "UI > SidePanel",
     "warning" : "",
     "category" : "General"
@@ -18,6 +18,7 @@ bl_info = {
 
 
 classes = (CEB_HubMocapSettings,TL_PT_CEB_HUB_Mocap_Panel,module_4dhumans_Execute,setup_smpl,OPS_OT_update_char_number,ImportCharacter
+           ,gvhmr_download_github
            ,WM_OT_AsyncDownload
            ,OT_AsyncUnzip
     ,OPS_OT_run_python_task,
