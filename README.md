@@ -5,7 +5,8 @@ Blender addon that uses modules to run mocap
 ## Modules
 Currently it works with 4dhumans and planned to have GVHMR
 
-[4d humans module](https://carlosedubarreto.gumroad.com/l/py_embed_4dhumans) (Paid)
+- [4d humans module](https://carlosedubarreto.gumroad.com/l/py_embed_4dhumans) (Paid)
+- [GVHMR](https://carlosedubarreto.gumroad.com/l/py_embed_gvhmr) (Paid)
 
 ### Free or discount
 - **Bought CEB 4d Humans:** If you purchased CEB 4D Humans, contact me and I'll give you the 4d humans module for free.
@@ -30,7 +31,13 @@ Instructions might change depending on the module, since it was needed to make t
 - Install the addon
 - download the desired module (or point to the path of the installation you did using python embedded)
 
-### In the addon (for 4D Humans):
+### GVHMR
+Watch the tutorial on this link https://youtu.be/32qywnynWNA
+
+
+### In the addon (for 4D Humans): 
+Video Tutorial: https://www.youtube.com/watch?v=LVBLkBfqpek
+
 - Choose the module, that will show only the options of module installation and execution just for that module
 - Select a folder to install the module (it will be remembered when you open blender again)
 - Select the module zip file and press the "Start Unzip" button
