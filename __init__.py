@@ -9,7 +9,7 @@ bl_info = {
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (4, 4, 0),
-    "version" : (0, 2, 0),
+    "version" : (0, 3, 0),
     "location" : "UI > SidePanel",
     "warning" : "",
     "category" : "General"
@@ -24,6 +24,7 @@ classes = (CEB_HubMocapSettings,TL_PT_CEB_HUB_Mocap_Panel,module_4dhumans_Execut
     ,OPS_OT_run_python_task,
     OPS_OT_run_subprocess,
     OPS_OT_cancel_task,
+    ShowHamerData, OpenFolderOperator,UpdtTotCharacterPHMR, download_github_generic
     )
 
 def register():
