@@ -4,19 +4,69 @@
 			"path": "hub_mocap.py",
 			"bookmarks": [
 				{
-					"line": 552,
+					"line": 579,
 					"column": 0,
 					"label": "Start subprocess"
 				},
 				{
-					"line": 631,
+					"line": 658,
 					"column": 0,
 					"label": "GVHMR quantidade de characters"
 				},
 				{
-					"line": 871,
+					"line": 735,
+					"column": 0,
+					"label": "Execute the code (sem travar blender)"
+				},
+				{
+					"line": 747,
+					"column": 0,
+					"label": "Execute 4D Humans"
+				},
+				{
+					"line": 851,
+					"column": 0,
+					"label": "Execute GVHMR"
+				},
+				{
+					"line": 898,
+					"column": 0,
+					"label": "Execute PromptHMR"
+				},
+				{
+					"line": 1135,
+					"column": 0,
+					"label": "Execute HaMeR"
+				},
+				{
+					"line": 1189,
 					"column": 0,
 					"label": "Calling Subprocess"
+				},
+				{
+					"line": 1216,
+					"column": 0,
+					"label": "Import Character"
+				},
+				{
+					"line": 1270,
+					"column": 0,
+					"label": "Import PromptHMR EXEC convert"
+				},
+				{
+					"line": 1302,
+					"column": 0,
+					"label": "Import HaMeR EXEC convert"
+				},
+				{
+					"line": 1356,
+					"column": 0,
+					"label": "Import SMPL Character"
+				},
+				{
+					"line": 1652,
+					"column": 0,
+					"label": "Import SMPLX Character"
 				}
 			]
 		},
@@ -24,19 +74,44 @@
 			"path": "panel.py",
 			"bookmarks": [
 				{
-					"line": 260,
+					"line": 333,
+					"column": 0,
+					"label": "Panel 4D Humans"
+				},
+				{
+					"line": 473,
 					"column": 0,
 					"label": ""
 				},
 				{
-					"line": 336,
+					"line": 549,
+					"column": 0,
+					"label": "Panle GVHMR"
+				},
+				{
+					"line": 880,
 					"column": 0,
 					"label": ""
 				},
 				{
-					"line": 582,
+					"line": 957,
 					"column": 0,
-					"label": ""
+					"label": "Panel PromptHmr"
+				},
+				{
+					"line": 1396,
+					"column": 0,
+					"label": "Panel HaMeR"
+				},
+				{
+					"line": 1684,
+					"column": 0,
+					"label": "Panel Social Media"
+				},
+				{
+					"line": 1695,
+					"column": 0,
+					"label": "HubMocapSettings"
 				}
 			]
 		}
