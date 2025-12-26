@@ -1223,6 +1223,10 @@ class ImportCharacter(Operator):
     option: IntProperty(name='Option',default=0) # type: ignore  0=4dhumans, 1=gvhmr, 2=prompthmr
 
     def execute(self,context):
+        import bpy
+
+        if context.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         # from bpy import context
 
@@ -2244,3 +2248,95 @@ class UpdtTotCharacterPHMR(Operator):
 
         hubmocap_prop.int_tot_character_prompthmr = len(data)        
         return {'FINISHED'}
+    
+class Smooth2(Operator):
+    bl_idname = "hubmocap.smooth2"
+    bl_label = "Smooth2"
+    bl_description = "Smooth2"
+    bl_options = {"REGISTER", "UNDO"}
+
+    option: IntProperty(name='Type of Smooth',default=0)# type: ignore #0= bake and smooth, 1= only bake,2=only smooth
+
+
+    def execute(self,context):
+
+        o = bpy.context.object
+        hide = o.hide_get()
+        disable = o.hide_viewport
+        if hide:
+            o.hide_set(not hide)
+        
+        if disable:
+            o.hide_viewport = not disable
+
+
+        if bpy.context.mode != 'POSE':
+            bpy.ops.object.mode_set(mode='POSE', toggle=False)
+        hubmocap_prop = context.scene.fourd_prop
+
+        # Selecionar apenas os dedos nessa parte
+        bpy.ops.pose.select_all(action='DESELECT')
+
+
+        for bone in o.data.bones:
+            if bone.name.startswith('left_index') or bone.name.startswith('left_middle') or bone.name.startswith('left_pinky') or bone.name.startswith('left_ring') or bone.name.startswith('left_thumb') or bone.name.startswith('right_index') or bone.name.startswith('right_middle') or bone.name.startswith('right_pinky') or bone.name.startswith('right_ring') or bone.name.startswith('right_thumb'):
+                bone.select = True
+        # types = {'VIEW_3D', 'TIMELINE', 'GRAPH_EDITOR', 'DOPESHEET_EDITOR', 'NLA_EDITOR', 'IMAGE_EDITOR', 'SEQUENCE_EDITOR', 'CLIP_EDITOR', 'TEXT_EDITOR', 'NODE_EDITOR', 'LOGIC_EDITOR', 'PROPERTIES', 'OUTLINER', 'USER_PREFERENCES', 'INFO', 'FILE_BROWSER', 'CONSOLE'}
+        def smooth_curves(o):
+            current_area = bpy.context.area.type
+            layer = bpy.context.view_layer
+
+            # if not fourd_prop.bool_selected_bones:
+            #     # select all (relevant) bones
+            #     for b in o.data.bones:
+            #         b.select = True
+            #     # o.data.bones[0].select = True
+            
+
+
+            layer.update()
+
+            # change to graph editor
+            bpy.context.area.type = "GRAPH_EDITOR"
+
+            # lock or unlock the respective fcurves
+            # for fc in o.animation_data.action.fcurves:
+            #     print(fc.data_path)
+            #     if "location" in fc.data_path:
+            #         fc.lock = False
+            #     else:
+            #         fc.lock = True
+
+            layer.update()
+            # smooth curves of all selected bones
+            bpy.ops.graph.smooth()
+
+            # switch back to original area
+            bpy.context.area.type = current_area
+
+            # deselect all (relevant) bones
+            # for b in o.data.bones:
+            #     b.select = False
+            # layer.update()
+
+
+        start_frame = context.scene.frame_start
+        end_frame = context.scene.frame_end
+
+        if self.option in  [0,1]:
+            bpy.ops.nla.bake(frame_start=start_frame, frame_end=end_frame, 
+                            only_selected=True, visual_keying=False, clear_constraints=False, 
+                            clear_parents=False, use_current_action=True, clean_curves=False, bake_types={'POSE'})
+        
+        if self.option in [0,2]:
+            # currently selected 
+            # o = bpy.context.object
+            smooth_curves(o)
+
+
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        if hide:
+            o.hide_set(hide)
+        if disable:
+            o.hide_viewport = disable
+        return{'FINISHED'}

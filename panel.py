@@ -1548,6 +1548,18 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
 
             import_char = col.operator('hubmocap.import_character', text="Import Hand Mocap")
             import_char.option = 3 #hamer
+            
+            col.label(text='Smooth Hands')
+            col_armature = col.column(align=True)
+            bpy.context.object
+            if context.object.type == 'ARMATURE' or ( context.object.parent and context.object.parent.type == 'ARMATURE'):
+                col_armature.enabled = True
+            else:
+                col_armature.enabled = False
+            col_armature.operator('hubmocap.smooth2',text='Complete (Graph + Smooth)').option = 0
+            row = col_armature.row(align=True)
+            row.operator('hubmocap.smooth2',text='Only Grapth').option = 1
+            row.operator('hubmocap.smooth2',text='Only Smooth').option = 2
 
 
 

@@ -49,22 +49,22 @@
 					"label": "Import Character"
 				},
 				{
-					"line": 1270,
+					"line": 1274,
 					"column": 0,
 					"label": "Import PromptHMR EXEC convert"
 				},
 				{
-					"line": 1302,
+					"line": 1306,
 					"column": 0,
 					"label": "Import HaMeR EXEC convert"
 				},
 				{
-					"line": 1356,
+					"line": 1360,
 					"column": 0,
 					"label": "Import SMPL Character"
 				},
 				{
-					"line": 1652,
+					"line": 1656,
 					"column": 0,
 					"label": "Import SMPLX Character"
 				}
@@ -104,12 +104,12 @@
 					"label": "Panel HaMeR"
 				},
 				{
-					"line": 1684,
+					"line": 1696,
 					"column": 0,
 					"label": "Panel Social Media"
 				},
 				{
-					"line": 1695,
+					"line": 1707,
 					"column": 0,
 					"label": "HubMocapSettings"
 				}
