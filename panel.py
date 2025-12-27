@@ -1076,11 +1076,17 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
             col.prop(hubmocap_prop, "module_phmr_install", text="Install Options",toggle=True)
 
             if hubmocap_prop.module_phmr_install:
-                if hubmocap_prop.path_gvhmr == '':
+                if hubmocap_prop.path_prompthmr == '':
                     col.alert = True
                 else:
                     col.alert = False
                 col.label(text="Path for PromptHMR")
+                if ' ' in hubmocap_prop.path_prompthmr:
+                    col.alert = True
+                    col.label(text="Path contains spaces")
+                    col.label(text="Please remove them")
+                else:
+                    col.alert = False
                 col.prop(hubmocap_prop, "path_prompthmr", text="")
 
                 ##############################################
@@ -1094,7 +1100,7 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 col.label(text="Get the Module")
                 
                 op = col.operator("wm.url_open", text="Gumroad (PAID)", icon='TAG')
-                op.url = "https://carlosedubarreto.gumroad.com/l/py_embeded_prompthmr" 
+                op.url = "https://carlosedubarreto.gumroad.com/l/py_embed_prompthmr" 
 
 
 
@@ -1551,8 +1557,8 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
             
             col.label(text='Smooth Hands')
             col_armature = col.column(align=True)
-            bpy.context.object
-            if context.object.type == 'ARMATURE' or ( context.object.parent and context.object.parent.type == 'ARMATURE'):
+            # bpy.context.object
+            if context.object and (context.object.type == 'ARMATURE' or ( context.object.parent and context.object.parent.type == 'ARMATURE')):
                 col_armature.enabled = True
             else:
                 col_armature.enabled = False
@@ -1577,6 +1583,14 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 col.label(text="Path for HaMeR")
                 col.prop(hubmocap_prop, "path_hamer", text="")
 
+                if ' ' in hubmocap_prop.path_hamer:
+                    col.alert = True
+                    col.label(text="Path contains spaces")
+                    col.label(text="Please remove them")
+                else:
+                    col.alert = False
+
+
 
                 ##############################################
                 ###### Hamer Install Options
@@ -1597,7 +1611,7 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 box = layout.box()
                 col = box.column(align=True)
                 row = col.row(align=True)
-                if hubmocap_prop.path_gvhmr == '':
+                if hubmocap_prop.path_hamer == '':
                     col.enabled = False
                 else:
                     col.enabled = True
@@ -1605,6 +1619,8 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 col.prop(hubmocap_prop, "path_hamer_zip", text="Zip File")
                 
                 col.operator("hubmocap.async_unzip", text="Start Unzip", icon='MOD_EXPLODE')
+                col.separator()
+                col.operator('hubmocap.setup_last_part', text="Install last step").module = 'hamer'
             
                 # Draw the status text
                 col.label(text=scene.zip_status_msg)

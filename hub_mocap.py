@@ -2261,6 +2261,22 @@ class Smooth2(Operator):
     def execute(self,context):
 
         o = bpy.context.object
+        used_obj = 'original'
+
+        if o.type != 'ARMATURE':
+            if o.parent.type == 'ARMATURE':
+                prev_o = o
+                o = o.parent
+                used_obj = 'parent'
+                o.select_set(True)
+                bpy.context.view_layer.objects.active = o
+
+            else:
+                self.report({'ERROR'}, "Please select an armature with a object")
+                return{'FINISHED'}
+        
+
+
         hide = o.hide_get()
         disable = o.hide_viewport
         if hide:
@@ -2272,7 +2288,7 @@ class Smooth2(Operator):
 
         if bpy.context.mode != 'POSE':
             bpy.ops.object.mode_set(mode='POSE', toggle=False)
-        hubmocap_prop = context.scene.fourd_prop
+        # hubmocap_prop = context.scene.hubmocap_prop
 
         # Selecionar apenas os dedos nessa parte
         bpy.ops.pose.select_all(action='DESELECT')
@@ -2339,4 +2355,56 @@ class Smooth2(Operator):
             o.hide_set(hide)
         if disable:
             o.hide_viewport = disable
+
+        if used_obj == 'parent':
+            prev_o.select_set(True)
+            bpy.context.view_layer.objects.active = prev_o
+        return{'FINISHED'}
+    
+class setup_last_part(Operator):
+    bl_idname = "hubmocap.setup_last_part"
+    bl_label = "Do the last part of the installation"
+    bl_description = "Last part of the installation"
+    bl_options = {'UNDO'}
+
+    module: StringProperty(name='Module Name')# type:ignore #hamer...
+
+
+    def execute(self, context):
+        print('Downloading Github Code')
+
+        hubmocap_prop = context.scene.hubmocap_prop
+
+        ### Installing the las part of the process
+
+        if self.module == 'hamer':
+
+
+            # Define the specific folder path you want to open in
+            path_hamer = hubmocap_prop.path_hamer
+            target_directory = os.path.join(path_hamer,'Hamer_Portable','hamer') 
+            # Ensure the directory exists before trying to open the console there (optional but recommended)
+            if not os.path.exists(target_directory):
+                print(f"Directory not found: {target_directory}")
+            else:
+                # Use Popen to launch cmd.exe
+                # We still use cmd /k "echo..." to keep the console window open
+                # The 'cwd' parameter sets the starting directory for the new process
+                subprocess.Popen(
+                    ['cmd.exe', '/k', '..\\python_embedded\\python -m pip install -e .[all]'], # /k keeps the window open
+                    # ['cmd.exe', '/c', '..\\python_embedded\\python -m pip install -e .'], # /c it closes the window when its done
+                    cwd=target_directory,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
+
+                subprocess.Popen(
+                    ['cmd.exe', '/k', '..\\python_embedded\\python -m pip install -v -e third-party/ViTPose'], # /k keeps the window open
+                    # ['cmd.exe', '/c', '..\\python_embedded\\python -m pip install -e .'], # /c it closes the window when its done
+                    cwd=target_directory,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
+
+
+
+        # os.chdir(current_path)
         return{'FINISHED'}
