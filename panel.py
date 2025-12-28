@@ -1568,13 +1568,30 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
             import_char = import_char_col.operator('hubmocap.import_character', text="Import Hand Mocap")
             import_char.option = 3 #hamer
             
-            col.label(text='Smooth Hands')
+            row = col.row(align=True)
+            if hubmocap_prop.bool_smooth_hands:
+                row.label(text='Smooth Hands')
+            else:
+                row.label(text='Smooth Selected Bones')
+            row.prop(hubmocap_prop, "bool_smooth_hands", text="",toggle=False)
             col_armature = col.column(align=True)
             # bpy.context.object
-            if context.object and (context.object.type == 'ARMATURE' or ( context.object.parent and context.object.parent.type == 'ARMATURE')):
-                col_armature.enabled = True
+            if hubmocap_prop.bool_smooth_hands:
+                if context.object and (context.object.type == 'ARMATURE' or ( context.object.parent and context.object.parent.type == 'ARMATURE')):
+                    col_armature.enabled = True
+                else:
+                    col_armature.enabled = False
             else:
-                col_armature.enabled = False
+                try:
+                    has_selection = any(bone.bone.select for bone in context.object.pose.bones)
+                except AttributeError:
+                    has_selection = any(context.object.pose.bones[bone.name].select for bone in context.object.pose.bones)
+                    
+                if has_selection:
+                    col_armature.enabled = True
+                else:
+                    col_armature.enabled = False
+            
             col_armature.operator('hubmocap.smooth2',text='Complete (Graph + Smooth)').option = 0
             row = col_armature.row(align=True)
             row.operator('hubmocap.smooth2',text='Only Grapth').option = 1
@@ -2000,6 +2017,12 @@ class CEB_HubMocapSettings(PropertyGroup):
     bool_hamer_load_new_body: BoolProperty(
         name="Load New Body",
         description="Load a new body if true, if false laod the animation on the selected character",
+        default=True,
+    ) # type: ignore
+
+    bool_smooth_hands: BoolProperty(
+        name="Smooth Hands",
+        description="Smooth Hands if selected",
         default=True,
     ) # type: ignore
 

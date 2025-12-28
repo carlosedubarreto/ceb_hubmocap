@@ -2285,18 +2285,25 @@ class Smooth2(Operator):
         if disable:
             o.hide_viewport = not disable
 
-
+        pose_mode = 0
         if bpy.context.mode != 'POSE':
             bpy.ops.object.mode_set(mode='POSE', toggle=False)
-        # hubmocap_prop = context.scene.hubmocap_prop
+        else:
+            pose_mode = 1
+
+        hubmocap_prop = context.scene.hubmocap_prop
 
         # Selecionar apenas os dedos nessa parte
-        bpy.ops.pose.select_all(action='DESELECT')
 
 
         for bone in o.data.bones:
-            if bone.name.startswith('left_index') or bone.name.startswith('left_middle') or bone.name.startswith('left_pinky') or bone.name.startswith('left_ring') or bone.name.startswith('left_thumb') or bone.name.startswith('right_index') or bone.name.startswith('right_middle') or bone.name.startswith('right_pinky') or bone.name.startswith('right_ring') or bone.name.startswith('right_thumb'):
-                bone.select = True
+            if hubmocap_prop.bool_smooth_hands:
+                bpy.ops.pose.select_all(action='DESELECT')
+                if bone.name.startswith('left_index') or bone.name.startswith('left_middle') or bone.name.startswith('left_pinky') or bone.name.startswith('left_ring') or bone.name.startswith('left_thumb') or bone.name.startswith('right_index') or bone.name.startswith('right_middle') or bone.name.startswith('right_pinky') or bone.name.startswith('right_ring') or bone.name.startswith('right_thumb'):
+                    try:
+                        bone.select = True
+                    except AttributeError:
+                        o.pose.bones[bone.name].select = True
         # types = {'VIEW_3D', 'TIMELINE', 'GRAPH_EDITOR', 'DOPESHEET_EDITOR', 'NLA_EDITOR', 'IMAGE_EDITOR', 'SEQUENCE_EDITOR', 'CLIP_EDITOR', 'TEXT_EDITOR', 'NODE_EDITOR', 'LOGIC_EDITOR', 'PROPERTIES', 'OUTLINER', 'USER_PREFERENCES', 'INFO', 'FILE_BROWSER', 'CONSOLE'}
         def smooth_curves(o):
             current_area = bpy.context.area.type
@@ -2349,8 +2356,8 @@ class Smooth2(Operator):
             # o = bpy.context.object
             smooth_curves(o)
 
-
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        if pose_mode == 0:
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         if hide:
             o.hide_set(hide)
         if disable:
