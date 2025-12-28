@@ -135,7 +135,8 @@ def updt_tot_char_phmr(self,context):
     base_file = os.path.join(path_code_phmr,'results',hubmocap_prop.enum_list_phmr_folder)
     file_og = os.path.join(base_file,'results.pkl')
     path_phmr_pkl = os.path.join(base_file,'results_world_blender.pkl')
-    if not os.path.exists(path_phmr_pkl):
+
+    if os.path.exists(file_og) and not os.path.exists(path_phmr_pkl):
 
         command = f'../python_embedded/python convert_to_pkl_blender.py --input {file_og}'
         current_folder = os.getcwd()
@@ -606,11 +607,12 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                     col.label(text=f'Characters : '+str(hubmocap_prop.int_tot_character_gvhmr))
             else: # se for pegar videos antigos, listar quantos ja foram executados
                 tot_char = 0
-                list_files = os.listdir(base_file)
-                for lf in list_files:
-                    if '.pkl' in lf:
-                        tot_char += 1
-                col.label(text=f'Characters : '+str(tot_char))
+                if os.path.exists(base_file):
+                    list_files = os.listdir(base_file)
+                    for lf in list_files:
+                        if '.pkl' in lf:
+                            tot_char += 1
+                    col.label(text=f'Characters : '+str(tot_char))
                 
 
 
@@ -1530,10 +1532,12 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 video_gvhmr = hubmocap_prop.enum_list_hamer_gvhmr_folder
                 path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
                 base_file = os.path.join(path_code,'outputs','demo',video_gvhmr)
-                list_files = os.listdir(base_file)
-                for lf in list_files:
-                    if '.pkl' in lf:
-                        col.label(text=lf)
+                if os.path.exists(base_file):
+                    
+                    list_files = os.listdir(base_file)
+                    for lf in list_files:
+                        if '.pkl' in lf:
+                            col.label(text=lf)
             
             if hubmocap_prop.enum_hamer_body =='phmr':
                 path_prompthmr = hubmocap_prop.path_prompthmr
@@ -1551,8 +1555,17 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
             col.separator()
             col.prop(hubmocap_prop,'bool_hamer_load_new_body', text='Load new Body')
              
+            import_char_col = col.column(align=True)
+            if hubmocap_prop.enum_hamer_body == 'gvhmr' and os.path.exists(base_file):
+                import_char_col.enabled = True
+            elif hubmocap_prop.enum_hamer_body == 'phmr' and os.path.exists(path_phmr_pkl):
+                import_char_col.enabled = True
+            elif hubmocap_prop.enum_hamer_body == 'no_body':
+                import_char_col.enabled = True
+            else:
+                import_char_col.enabled = False
 
-            import_char = col.operator('hubmocap.import_character', text="Import Hand Mocap")
+            import_char = import_char_col.operator('hubmocap.import_character', text="Import Hand Mocap")
             import_char.option = 3 #hamer
             
             col.label(text='Smooth Hands')

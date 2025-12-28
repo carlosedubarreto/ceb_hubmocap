@@ -9,7 +9,7 @@ bl_info = {
     "author" : "Carlos Barreto",
     "description" : "",
     "blender" : (4, 4, 0),
-    "version" : (0, 5, 0),
+    "version" : (0, 6, 0),
     "location" : "UI > SidePanel",
     "warning" : "",
     "category" : "General"
