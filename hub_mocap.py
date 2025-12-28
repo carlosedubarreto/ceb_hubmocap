@@ -2296,9 +2296,9 @@ class Smooth2(Operator):
         # Selecionar apenas os dedos nessa parte
 
 
-        for bone in o.data.bones:
-            if hubmocap_prop.bool_smooth_hands:
-                bpy.ops.pose.select_all(action='DESELECT')
+        if hubmocap_prop.bool_smooth_hands:
+            bpy.ops.pose.select_all(action='DESELECT')
+            for bone in o.data.bones:
                 if bone.name.startswith('left_index') or bone.name.startswith('left_middle') or bone.name.startswith('left_pinky') or bone.name.startswith('left_ring') or bone.name.startswith('left_thumb') or bone.name.startswith('right_index') or bone.name.startswith('right_middle') or bone.name.startswith('right_pinky') or bone.name.startswith('right_ring') or bone.name.startswith('right_thumb'):
                     try:
                         bone.select = True
