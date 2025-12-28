@@ -1582,13 +1582,16 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 else:
                     col_armature.enabled = False
             else:
-                try:
-                    has_selection = any(bone.bone.select for bone in context.object.pose.bones)
-                except AttributeError:
-                    has_selection = any(context.object.pose.bones[bone.name].select for bone in context.object.pose.bones)
-                    
-                if has_selection:
-                    col_armature.enabled = True
+                if context.object and context.object.type == 'ARMATURE' :
+                    try:
+                        has_selection = any(bone.bone.select for bone in context.object.pose.bones)
+                    except AttributeError:
+                        has_selection = any(context.object.pose.bones[bone.name].select for bone in context.object.pose.bones)
+                        
+                    if has_selection:
+                        col_armature.enabled = True
+                    else:
+                        col_armature.enabled = False
                 else:
                     col_armature.enabled = False
             
