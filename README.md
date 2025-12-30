@@ -3,10 +3,13 @@ Blender addon that uses modules to run mocap
 
 
 ## Modules
-Currently it works with 4dhumans and planned to have GVHMR
+The modules are files with python embeded that is fully installed with everything needed for the code to run (that is why there are modules for each code, since they need different library)
 
 - [4d humans module](https://carlosedubarreto.gumroad.com/l/py_embed_4dhumans) (Paid)
 - [GVHMR](https://carlosedubarreto.gumroad.com/l/py_embed_gvhmr) (Paid)
+- [PromptHMR](https://carlosedubarreto.gumroad.com/l/py_embed_prompthmr) (Paid)
+- [HaMeR](https://carlosedubarreto.gumroad.com/l/py_embed_hamer) (Paid)
+
 
 ### Free or discount
 - **Bought CEB 4d Humans:** If you purchased CEB 4D Humans, contact me and I'll give you the 4d humans module for free.
@@ -15,9 +18,9 @@ Currently it works with 4dhumans and planned to have GVHMR
 
 
 ## Free alternative: Make the module yourself
-To make a module you'll need to install the python packages using  python embedded.
+To make a module you'll need to install the python packages using  python embeded.
 
-It's more complicated than the usual python installation (but not that much), if enough people show interest I can instructions explaining how to do it, so you can be able to use the addon.
+It's more complicated than the usual python installation (but not that much), if enough people show interest I can share more information explaining how to do it, so you can be able to use the addon.
 
 Instructions might change depending on the module, since it was needed to make the code to wrap all the dependencies into one folder (some projects like 4d humans uses the windows user folder to store some data, and I had to change the code.)
 
@@ -35,7 +38,7 @@ Instructions might change depending on the module, since it was needed to make t
 Watch the tutorial on this link https://youtu.be/32qywnynWNA
 
 
-### In the addon (for 4D Humans): 
+### 4D Humans 
 Video Tutorial: https://www.youtube.com/watch?v=LVBLkBfqpek
 
 - Choose the module, that will show only the options of module installation and execution just for that module
@@ -54,6 +57,12 @@ After finishing the process press the button **Update** to see how many characte
 Press the **Import Mocap** to load the result in blender.
 
 Done.
+
+### PromptHMR and HaMeR:
+Watch the tutorial https://youtu.be/Umgay5PUMe0?si=fh6TeUyafi62cFSH its based on CEB HubMocap 0.04
+
+### HaMeR:
+More updated information on how to install, based on CEB HubMocap 0.05 https://youtu.be/ruM9yXLBUQY?si=mxJZkXvnzx6ZOFje
 
 ## Troubleshooting:
 - Its possible that you need Microsoft C++ redistributable to be installed. It will show on the blender console an error with the link  https://aka.ms/vs/16/release/vc_redist.x64.exe If you got this error, you just need to install this file and run again
