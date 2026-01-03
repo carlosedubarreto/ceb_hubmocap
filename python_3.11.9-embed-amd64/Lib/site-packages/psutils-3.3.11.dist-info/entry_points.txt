@@ -1,0 +1,10 @@
+[console_scripts]
+epsffit = psutils.command.epsffit:epsffit
+extractres = psutils.command.extractres:extractres
+includeres = psutils.command.includeres:includeres
+psbook = psutils.command.psbook:psbook
+psjoin = psutils.command.psjoin:psjoin
+psnup = psutils.command.psnup:psnup
+psresize = psutils.command.psresize:psresize
+psselect = psutils.command.psselect:psselect
+pstops = psutils.command.pstops:pstops

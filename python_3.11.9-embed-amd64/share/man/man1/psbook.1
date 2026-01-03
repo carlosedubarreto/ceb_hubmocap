@@ -1,0 +1,63 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] [INFILE [OUTFILE]]
+.SH DESCRIPTION
+.PP
+.B psbook
+uses
+.B pstops
+to rearrange pages from a PDF or PostScript document into \[oq]signatures\[cq] for
+printing books or booklets, creating a new file.
+A \[oq]signature\[cq], often called a \[oq]section\[cq] in bookbinding, is a
+series of sheets that are folded together to be stitched into the book's
+binding. Each sheet has two pages per side; the number of pages in a
+signature must therefore be a multiple of four.
+Extra blank sides will be added if the file does not contain a multiple of
+four pages.
+.PP
+The output should be printed 2-up (this can be achieved with \fBpsnup\fR(1))
+and duplex, as for short-edge binding. Alternatively, the output of
+.B psnup
+can be passed through the following command:
+.sp
+pstops '2:0(0,0),1U(1w,1h)'
+.sp
+to rotate the verso page upside-down, and the result can be printed duplex
+as for long-edge binding.
+Rearrange pages in a PDF or PostScript document into signatures.
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-s\fR \fI\,SIGNATURE\/\fR, \fB\-\-signature\fR \fI\,SIGNATURE\/\fR
+number of pages per signature;
+0 = all pages in one signature [default];
+1 = do not rearrange the pages;
+otherwise, a multiple of 4
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH COMMENTS
+PAGES is a comma\-separated list of pages and page ranges; see pstops(1)
+for more details.
+
+.SH AUTHOR
+.nf
+Reuben Thomas <rrt@sc3d.org>
+.fi

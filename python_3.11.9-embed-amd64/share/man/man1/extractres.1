@@ -1,0 +1,60 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] [INFILE [OUTFILE]]
+.SH DESCRIPTION
+.PP
+.B extractres
+extracts resources (fonts, procsets, patterns, files, etc) appearing in a
+PostScript document, and puts appropriate
+.B %%IncludeResource
+comments in the document prologue.
+The extracted resources are written to files with the same name as the
+resource, and an appropriate extension.
+The pipeline
+.sp
+.RS
+extractres file.ps | includeres >out.ps
+.RE
+.sp
+will move all resources appearing in a document to the document prologue,
+removing redundant copies.
+The output file can then be put through page re-arrangement filters such as
+.B psnup
+or
+.B pstops
+safely.
+Extract resources from a PostScript document.
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-m\fR, \fB\-\-merge\fR
+merge resources of the same name into one file
+(needed e.g. for fonts output in multiple blocks)
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH AUTHOR
+.nf
+.SH BUGS
+.B extractres
+does not alter the
+.B %%DocumentSuppliedResources
+comments.
+.fi

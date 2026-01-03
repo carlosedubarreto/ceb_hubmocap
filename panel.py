@@ -3,9 +3,10 @@ import os
 # from os.path import join
 # import sys
 import textwrap
+import glob
 
 from .hub_mocap import *
-
+from bpy.app.handlers import persistent
 
 
 
@@ -18,6 +19,192 @@ from bpy.props import (StringProperty,
                         )
 from bpy.types import (PropertyGroup)
 
+
+########################## Resource Monitor
+################# Start
+
+resource_data = {
+    "cpu_percent": 0.0,
+    "ram_used": 0.0,
+    "ram_total": 0.0,
+    "ram_percent": 0.0,
+    "gpu_percent": 0.0,
+    "vram_used": 0.0,
+    "vram_total": 0.0,
+    "vram_percent": 0.0,
+    "gpu_temp": 0.0,
+    "gpu_name": "N/A",
+    "libraries_installed": False,
+    "error_message": "",
+    "monitor_script_path": None,
+    "is_updating": False,
+    "last_update_time": 0.0,
+    "needs_redraw": False
+}
+
+# Thread lock for thread-safe data access (Resource monitor)
+data_lock_rm = threading.Lock()
+
+def update_resource_data_thread():
+    """Update resource usage data using subprocess in a thread"""
+    global resource_data
+    hubmocap_prop = bpy.context.scene.hubmocap_prop
+    
+    
+    
+    with data_lock_rm:
+        if resource_data["is_updating"]:
+            return  # Already updating, skip this cycle
+        resource_data["is_updating"] = True
+    
+    try:
+        path_addon = os.path.dirname(os.path.abspath(__file__))
+       
+        # Run the monitoring script
+        # python_exec = r"D:\_Code\Meu\_GITHUB\CEB_HubMocap_prj\ceb_hubmocap\python_3.11.9-embed-amd64\python.exe"
+        python_exec = os.path.join(path_addon, "python_3.11.9-embed-amd64", "python.exe")
+
+        if hubmocap_prop.bool_show_system_resources:
+ 
+            result = subprocess.run(    
+                [python_exec, resource_data["monitor_script_path"]],
+                capture_output=True,
+                text=True,
+                timeout=3
+            )
+        
+        if result.returncode == 0:
+            data = json.loads(result.stdout)
+            
+            # Update resource data in thread-safe manner
+            with data_lock_rm:
+                resource_data["cpu_percent"] = data.get("cpu_percent", 0.0)
+                resource_data["ram_used"] = data.get("ram_used", 0.0)
+                resource_data["ram_total"] = data.get("ram_total", 0.0)
+                resource_data["ram_percent"] = data.get("ram_percent", 0.0)
+                resource_data["gpu_percent"] = data.get("gpu_percent", 0.0)
+                resource_data["vram_used"] = data.get("vram_used", 0.0)
+                resource_data["vram_total"] = data.get("vram_total", 0.0)
+                resource_data["vram_percent"] = data.get("vram_percent", 0.0)
+                resource_data["gpu_temp"] = data.get("gpu_temp", 0.0)
+                resource_data["gpu_name"] = data.get("gpu_name", "N/A")
+                
+                if hubmocap_prop.fl_max_ram < resource_data["ram_used"]:
+                    hubmocap_prop.fl_max_ram = resource_data["ram_used"]
+                
+                if hubmocap_prop.fl_max_vram < resource_data["vram_used"]:
+                    hubmocap_prop.fl_max_vram = resource_data["vram_used"]
+                
+                if hubmocap_prop.fl_max_gpu_temp < resource_data["gpu_temp"]:
+                    hubmocap_prop.fl_max_gpu_temp = resource_data["gpu_temp"]
+                
+                if data.get("error"):
+                    resource_data["error_message"] = data["error"]
+                else:
+                    resource_data["error_message"] = ""
+                # Mark that we need a redraw
+                resource_data["needs_redraw"] = True
+                    
+        else:
+            with data_lock_rm:
+                resource_data["error_message"] = "Monitor script error"
+                resource_data["needs_redraw"] = True
+            
+    except subprocess.TimeoutExpired:
+        with data_lock_rm:
+            resource_data["error_message"] = "Monitor timeout"
+            resource_data["needs_redraw"] = True
+    except json.JSONDecodeError as e:
+        with data_lock_rm:
+            resource_data["error_message"] = f"JSON error: {str(e)}"
+            resource_data["needs_redraw"] = True
+    except Exception as e:
+        with data_lock_rm:
+            resource_data["error_message"] = f"Error: {str(e)}"
+            resource_data["needs_redraw"] = True
+    finally:
+        with data_lock_rm:
+            resource_data["is_updating"] = False
+
+def start_update_thread():
+    """Start the update in a separate thread"""
+    thread_rm = threading.Thread(target=update_resource_data_thread, daemon=True)
+    thread_rm.start()
+
+def tag_redraw_all_areas():
+    """Force redraw of all 3D view areas"""
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'VIEW_3D':
+                area.tag_redraw()
+
+
+class MONITOR_OT_RefreshData(bpy.types.Operator):
+    """Manually refresh resource data"""
+    bl_idname = "hubmocap.refresh_data"
+    bl_label = "Refresh"
+    bl_options = {'REGISTER'}
+    
+    def execute(self, context):
+        
+        start_update_thread()
+        self.report({'INFO'}, "Refreshing data...")
+        
+        return {'FINISHED'}
+
+
+def update_progress_bars(scene):
+    """Update progress bar properties based on resource data"""
+    with data_lock_rm:
+        scene.monitor_cpu_progress = resource_data['cpu_percent']
+        scene.monitor_ram_progress = resource_data['ram_percent']
+        scene.monitor_gpu_progress = resource_data['gpu_percent']
+        scene.monitor_vram_progress = resource_data['vram_percent']
+
+@persistent
+def monitor_timer():
+    """Timer function to trigger resource data updates"""
+    with data_lock_rm:
+        # libs_installed = resource_data.get("libraries_installed", False)
+        needs_redraw = resource_data.get("needs_redraw", False)
+    
+    
+
+    # if libs_installed:
+    hubmocap_prop = bpy.context.scene.hubmocap_prop
+    if hubmocap_prop.bool_show_system_resources:
+
+        # Start update in separate thread (non-blocking)
+        start_update_thread()
+        
+        # Update progress bars (safe to do in main thread)
+        if bpy.context.scene:
+            update_progress_bars(bpy.context.scene)
+        
+        # Force redraw if data was updated
+        if needs_redraw:
+            tag_redraw_all_areas()
+            with data_lock_rm:
+                resource_data["needs_redraw"] = False
+    
+    return 2.0  # Update every 2 seconds
+
+@persistent
+def redraw_timer():
+    """Fast timer to force redraws for smooth updates"""
+    # with data_lock_rm:
+    #     libs_installed = resource_data.get("libraries_installed", False)
+    
+    # if libs_installed:
+    hubmocap_prop = bpy.context.scene.hubmocap_prop
+    if hubmocap_prop.bool_show_system_resources:
+        # Force redraw of all 3D view areas
+        tag_redraw_all_areas()
+    
+    return 0.5  # Redraw every 0.5 seconds for smooth animation
+
+################# END
+########################## Resource Monitor
 
 def get_folder_items(self, context):
     """
@@ -315,10 +502,140 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
     
     def draw(self, context):
 
-
         layout = self.layout
         scene = context.scene
         hubmocap_prop = context.scene.hubmocap_prop
+
+        ########### Resource Monitor
+        ### Start
+        box = layout.box()
+        col = box.column(align=True)
+        with data_lock_rm:
+            libs_installed = resource_data.get("libraries_installed", False)
+            error_msg = resource_data.get("error_message", "")
+            is_updating = resource_data.get("is_updating", False)
+        row = col.row(align=True)
+        # total_time = (hubmocap_prop.fl_end_exec_time - hubmocap_prop.fl_start_exec_time)/60
+        # row.prop(hubmocap_prop,'bool_show_system_resources',text=f'Resources  (time: {total_time:.1f}m)')
+        row.prop(hubmocap_prop,'bool_show_system_resources',text='Resources')
+        if hubmocap_prop.bool_show_system_resources:
+            if is_updating:
+                # row.label(text="Updating...", icon='TIME')
+                row.label(text="", icon='TIME')
+
+            row.operator("hubmocap.refresh_data", icon='FILE_REFRESH',text='')
+
+            
+            # Show updating indicator
+            # if is_updating:
+            #     layout.label(text="Updating...", icon='TIME')
+            
+            # Thread-safe read of all data
+            with data_lock_rm:
+                cpu_percent = resource_data['cpu_percent']
+                ram_used = resource_data['ram_used']
+                ram_total = resource_data['ram_total']
+                ram_percent = resource_data['ram_percent']
+                gpu_percent = resource_data['gpu_percent']
+                gpu_name = resource_data['gpu_name']
+                gpu_temp = resource_data['gpu_temp']
+                vram_used = resource_data['vram_used']
+                vram_total = resource_data['vram_total']
+                vram_percent = resource_data['vram_percent']
+
+            box = layout.box()
+            col = box.column(align=True)
+            row = col.row(align=True)
+            
+            row.prop(hubmocap_prop,'bool_show_max_used_resource',text='Max')
+
+            if hubmocap_prop.bool_show_max_used_resource:
+                # col.label(text="Max")
+                row.label(text=f"GPU TEMP: {hubmocap_prop.fl_max_gpu_temp:.1f} °C")
+                row = col.row(align=True)
+                row.label(text=f"RAM: {hubmocap_prop.fl_max_ram:.2f} GB")
+                row.label(text=f"VRAM: {hubmocap_prop.fl_max_vram:.2f} GB")
+                # row.label(text=f"VRAM: {resource_data['max_vram_percent']:.1f}%")
+                
+            
+            # CPU Section
+            box = layout.box()
+            row = box.row()
+            row.label(text="CPU", icon='SYSTEM')
+            # row.label(text=f"Usage: {cpu_percent:.1f}%")
+            # row.label(text=f"{cpu_percent:.1f}%")
+            # row = box.row()
+            row.prop(context.scene, "monitor_cpu_progress", text="", slider=True)
+            
+            # RAM Section
+            box = layout.box()
+            col = box.column(align=True)
+            if ram_percent > 90:
+                col.alert = True
+            else:
+                col.alert = False
+            row = col.row(align=True)
+            row.label(text="RAM", icon='MEMORY')
+            row.label(text=f"{ram_used:.2f} / {ram_total:.2f} GB")
+            row = col.row(align=True)
+            # row.label(text=f"Usage: {ram_percent:.1f}%")
+            # row = box.row()
+
+            row.prop(context.scene, "monitor_ram_progress", text="", slider=True)
+            
+            # GPU Section
+            box = layout.box()
+            col = box.column(align=True)
+            row = col.row(align=True)
+            # row.label(text="GPU", icon='SHADING_RENDERED')
+            row.label(text="", icon='SHADING_RENDERED')
+            if gpu_name != "N/A":
+                row.label(text=gpu_name[:30])
+            row = col.row(align=True)
+            row.label(text=f"Usage: {gpu_percent:.1f}%")
+            if gpu_temp > 0:
+                row_temp = row.row(align=True)
+                if gpu_temp > 75:
+                    row_temp.alert = True
+                else:
+                    row_temp.alert = False
+                row_temp.label(text=f"Temp: {gpu_temp:.0f}°C", icon='LIGHT_SUN')
+            row = col.row(align=True)
+            row.prop(context.scene, "monitor_gpu_progress", text="", slider=True)
+            
+            # VRAM Section
+            box = layout.box()
+            col = box.column(align=True)
+            if vram_percent > 90:
+                col.alert = True
+            else:
+                col.alert = False
+            row = col.row(align=True)
+            row.label(text="VRAM", icon='TEXTURE')
+            # row = box.row()
+            row.label(text=f"{vram_used:.2f} / {vram_total:.2f} GB")
+            # row = box.row()
+            # row.label(text=f"Usage: {vram_percent:.1f}%")
+            row = col.row(align=True)
+            # row = box.row()
+            row.prop(context.scene, "monitor_vram_progress", text="", slider=True)
+            
+            # Controls
+            layout.separator()
+            row = layout.row()
+            # row.operator("hubmocap.refresh_data", icon='FILE_REFRESH')
+            
+            # Error message
+            if error_msg and libs_installed:
+                box = layout.box()
+                box.label(text="Status:", icon='INFO')
+                error_lines = error_msg.split('|')
+                for line in error_lines:
+                    box.label(text=line.strip()[:50])
+
+        ### End
+        ########### Resource Monitor
+        
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -1493,8 +1810,14 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
 
             if hubmocap_prop.bool_current_video_hamer:
                 video_name = os.path.splitext(os.path.basename(hubmocap_prop.path_hamer_video_input))[0]
-                base_file = os.path.join(path_code_hamer,'demo_out',video_name,'result_000_00000.pkl')
-                if os.path.exists(base_file):
+                # base_file = os.path.join(path_code_hamer,'demo_out',video_name,'result_000_00000.pkl')
+                base_dir = os.path.join(path_code_hamer,'demo_out',video_name)
+                filter_files = os.path.join(base_dir,'result_000_*.pkl')
+                list_files = glob.glob(filter_files)
+
+
+                # if os.path.exists(base_file):
+                if len(list_files) > 0:
                     col_get_hamer_info.enabled = True
                 else:
                     col_get_hamer_info.enabled = False
@@ -1504,8 +1827,12 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
                 if video_name == 'NONE':
                     col_get_hamer_info.enabled = False
                 else:
-                    base_file = os.path.join(path_code_hamer,'demo_out',video_name,'result_000_00000.pkl')
-                    if os.path.exists(base_file):
+                    # base_file = os.path.join(path_code_hamer,'demo_out',video_name,'result_000_00000.pkl')
+                    # if os.path.exists(base_file):
+                    base_dir = os.path.join(path_code_hamer,'demo_out',video_name)
+                    filter_files = os.path.join(base_dir,'result_000_*.pkl')
+                    list_files = glob.glob(filter_files)
+                    if len(list_files) > 0:
                         col_get_hamer_info.enabled = True
                     else:
                         col_get_hamer_info.enabled = False
@@ -1522,7 +1849,10 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
             box = layout.box()
             col = box.column(align=True)
             row = col.row(align=True)
-            col.label(text='Import Mocap')
+            row.label(text='Import Mocap')
+            open_folder =row.operator('hubmocap.open_folder_explorer', icon='FILE_FOLDER', text='')
+            open_folder.folder_path = base_dir
+
             col.prop(hubmocap_prop,'enum_hamer_body', text='Body')
             if hubmocap_prop.enum_hamer_body == 'gvhmr':
                 col.prop(hubmocap_prop,'enum_list_hamer_gvhmr_folder', text='Folder')
@@ -1754,6 +2084,38 @@ class TL_PT_CEB_HUB_Mocap_Panel(bpy.types.Panel):
 
 
 class CEB_HubMocapSettings(PropertyGroup):
+
+    bool_show_system_resources: BoolProperty(
+        name="Show System Resources",
+        description="Show System Resources",
+        default=False,
+    )# type:ignore
+
+    bool_show_max_used_resource: BoolProperty(
+        name="Show Max Used Resource",
+        description="Show Max Used Resource",
+        default=True,)# type:ignore
+    
+    fl_max_ram: FloatProperty(name="Max RAM",description="Max RAM",default=0.0)# type:ignore
+    fl_max_vram: FloatProperty(name="Max VRAM",description="Max VRAM",default=0.0)# type:ignore
+    fl_max_gpu_temp: FloatProperty(name="Max GPU Temp",description="Max GPU Temp",default=0.0)# type:ignore
+
+    fl_start_exec_time: FloatProperty(
+        name="Start Time",
+        description="Start Time",
+        default=0.0,
+        # Optional: Set the subtype to 'TIME' to show it in a time format in the UI
+        subtype='TIME'
+    ) # type:ignore
+
+    fl_end_exec_time: FloatProperty(
+        name="End Time",
+        description="End Time",
+        default=0.0,
+        # Optional: Set the subtype to 'TIME' to show it in a time format in the UI
+        subtype='TIME'
+    ) # type:ignore
+
 
     ##############################################
     ##### Module buttons

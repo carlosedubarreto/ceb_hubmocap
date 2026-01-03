@@ -1,0 +1,66 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Command"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] LLX LLY URX URY [INFILE [OUTFILE]]
+.SH DESCRIPTION
+Fit an Encapsulated PostScript file to a given bounding box.
+
+.TP
+\fBLLX\fR
+x coordinate of lower left corner of the box
+
+.TP
+\fBLLX\fR
+y coordinate of lower left corner of the box
+
+.TP
+\fBLLX\fR
+x coordinate of upper right corner of the box
+
+.TP
+\fBLLX\fR
+y coordinate of upper right corner of the box
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-c\fR, \fB\-\-center\fR, \fB\-\-centre\fR
+center the image in the given bounding box
+
+.TP
+\fB\-r\fR, \fB\-\-rotate\fR
+rotate the image by 90 degrees counter\-clockwise
+
+.TP
+\fB\-a\fR, \fB\-\-aspect\fR
+adjust the aspect ratio to fit the bounding box
+
+.TP
+\fB\-m\fR, \fB\-\-maximize\fR, \fB\-\-maximise\fR
+rotate the image to fill more of the page if possible
+
+.TP
+\fB\-s\fR, \fB\-\-showpage\fR
+append a /showpage to the file to force printing
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH AUTHOR
+.nf
+Reuben Thomas <rrt@sc3d.org>
+.fi

@@ -1,0 +1,120 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] -NUMBER [INFILE [OUTFILE]]
+.SH DESCRIPTION
+.PP
+.B psnup
+uses
+.B pstops
+to impose multiple logical pages on to each physical sheet of paper.
+.PP
+Paper sizes can be given either as a name (see
+.BR paper(1) )
+or as \fBwidth\fRx\fBheight\fR (see
+.BR psutils (1)
+for the available units).
+Put multiple pages of a PostScript document on to one page.
+
+.TP
+\fB\-NUMBER\fR
+number of pages to impose on each output page
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-p\fR \fI\,PAPER\/\fR, \fB\-\-paper\fR \fI\,PAPER\/\fR
+output paper name or dimensions (WIDTHxHEIGHT)
+
+.TP
+\fB\-P\fR \fI\,INPAPER\/\fR, \fB\-\-inpaper\fR \fI\,INPAPER\/\fR
+input paper name or dimensions (WIDTHxHEIGHT)
+
+.TP
+\fB\-m\fR \fI\,DIMENSION\/\fR, \fB\-\-margin\fR \fI\,DIMENSION\/\fR
+width of margin around each output page
+[default 0pt]; useful for thumbnail sheets,
+as the original page margins will be shrunk
+
+.TP
+\fB\-b\fR \fI\,DIMENSION\/\fR, \fB\-\-border\fR \fI\,DIMENSION\/\fR
+width of border around each input page
+
+.TP
+\fB\-d\fR \fI\,[DIMENSION]\/\fR, \fB\-\-draw\fR \fI\,[DIMENSION]\/\fR
+draw a line of given width (relative to original
+page) around each page [argument defaults to 1pt;
+default is no line; width is fixed for PDF]
+
+.TP
+\fB\-l\fR, \fB\-\-rotatedleft\fR
+input pages are rotated left 90 degrees
+
+.TP
+\fB\-r\fR, \fB\-\-rotatedright\fR
+input pages are rotated right 90 degrees
+
+.TP
+\fB\-f\fR, \fB\-\-flip\fR
+swap output pages' width and height
+
+.TP
+\fB\-c\fR, \fB\-\-transpose\fR
+swap columns and rows (column\-major order)
+
+.TP
+\fB\-t\fR \fI\,NUMBER\/\fR, \fB\-\-tolerance\fR \fI\,NUMBER\/\fR
+maximum wasted area in square pt [default: 100000]
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH COMMENTS
+psnup aborts with an error if it cannot arrange the input pages so as to
+waste less than the given tolerance.
+
+The output page size defaults to the input page size; if none is specified
+in the document or on the command line, the default given by the `paper'
+command is used.
+
+The input page size defaults to the output page size.
+
+In row\-major order (the default), adjacent pages are placed in rows
+across the paper; in column\-major order, they are placed in columns down
+the page.
+.SH EXAMPLES
+The potential use of this utility is varied but one particular
+use is in conjunction with
+.BR psbook (1).
+For example, using groff to create a PostScript document and lpr as
+the
+.SM UNIX
+print spooler a typical command line might look like this:
+.sp
+groff -Tps -ms \fIfile\fP | psbook | psnup -2 | lpr
+.sp
+where file is a 4 page document this command will result in a
+two page document printing two pages of \fIfile\fP per page and
+rearranges the page order to match the input pages 4 and 1
+on the first output page and
+pages 2 then 3 of the input document
+on the second output page.
+
+.SH AUTHOR
+.nf
+Reuben Thomas <rrt@sc3d.org>
+.fi

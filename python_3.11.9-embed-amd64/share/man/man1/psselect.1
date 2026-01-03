@@ -1,0 +1,54 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] [PAGES] [INFILE [OUTFILE]]
+.SH DESCRIPTION
+.B psselect
+calls
+.B pstops
+to do the rearrangement.
+Select pages from a PDF or PostScript document.
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-R\fR \fI\,PAGES\/\fR, \fB\-p\fR \fI\,PAGES\/\fR, \fB\-\-pages\fR \fI\,PAGES\/\fR
+select the given page ranges
+
+.TP
+\fB\-e\fR, \fB\-\-even\fR
+select even\-numbered output pages
+
+.TP
+\fB\-o\fR, \fB\-\-odd\fR
+select odd\-numbered output pages
+
+.TP
+\fB\-r\fR, \fB\-\-reverse\fR
+reverse the order of the output pages
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH COMMENTS
+PAGES is a comma\-separated list of pages and page ranges; see
+pstops(1) for more details.
+
+.SH AUTHOR
+.nf
+Reuben Thomas <rrt@sc3d.org>
+.fi

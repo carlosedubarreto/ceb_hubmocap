@@ -1,0 +1,37 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] FILE...
+.SH DESCRIPTION
+Concatenate PDF or PostScript documents.
+
+.TP
+\fBFILE\fR
+`\-' or no FILE argument means standard input
+
+.SH OPTIONS
+.TP
+\fB\-e\fR, \fB\-\-even\fR
+force each file to an even number of pages
+
+.TP
+\fB\-s\fR, \fB\-\-save\fR
+try to close unclosed save operators
+
+.TP
+\fB\-n\fR, \fB\-\-nostrip\fR
+do not strip prolog or trailer from input files
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.SH COMMENTS
+The \-\-save and \-\-nostrip options only apply to PostScript files.
+
+.SH AUTHOR
+.nf
+Reuben Thomas <rrt@sc3d.org>
+.fi

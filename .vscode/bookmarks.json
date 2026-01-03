@@ -9,64 +9,64 @@
 					"label": "Start subprocess"
 				},
 				{
-					"line": 658,
+					"line": 663,
 					"column": 0,
 					"label": "GVHMR quantidade de characters"
 				},
 				{
-					"line": 735,
+					"line": 740,
 					"column": 0,
 					"label": "Execute the code (sem travar blender)"
 				},
 				{
-					"line": 747,
-					"column": 0,
-					"label": "Execute 4D Humans"
-				},
-				{
-					"line": 851,
+					"line": 861,
 					"column": 0,
 					"label": "Execute GVHMR"
 				},
 				{
-					"line": 898,
+					"line": 906,
 					"column": 0,
 					"label": "Execute PromptHMR"
 				},
 				{
-					"line": 1135,
+					"line": 1127,
 					"column": 0,
 					"label": "Execute HaMeR"
 				},
 				{
-					"line": 1189,
+					"line": 1180,
 					"column": 0,
 					"label": "Calling Subprocess"
 				},
 				{
-					"line": 1216,
+					"line": 1207,
 					"column": 0,
 					"label": "Import Character"
 				},
 				{
-					"line": 1274,
+					"line": 1265,
 					"column": 0,
 					"label": "Import PromptHMR EXEC convert"
 				},
 				{
-					"line": 1306,
+					"line": 1297,
 					"column": 0,
 					"label": "Import HaMeR EXEC convert"
 				},
 				{
-					"line": 1360,
+					"line": 1356,
 					"column": 0,
 					"label": "Import SMPL Character"
 				},
 				{
-					"line": 1656,
+					"line": 1652,
 					"column": 0,
 					"label": "Import SMPLX Character"
+				},
+				{
+					"line": 763,
+					"column": 1,
+					"label": ""
 				}
 			]
 		},
@@ -74,44 +74,49 @@
 			"path": "panel.py",
 			"bookmarks": [
 				{
-					"line": 334,
+					"line": 508,
+					"column": 0,
+					"label": "Panel Resource Monitor"
+				},
+				{
+					"line": 651,
 					"column": 0,
 					"label": "Panel 4D Humans"
 				},
 				{
-					"line": 474,
+					"line": 791,
 					"column": 0,
 					"label": ""
 				},
 				{
-					"line": 550,
+					"line": 867,
 					"column": 0,
 					"label": "Panle GVHMR"
 				},
 				{
-					"line": 882,
+					"line": 1199,
 					"column": 0,
 					"label": ""
 				},
 				{
-					"line": 959,
+					"line": 1276,
 					"column": 0,
 					"label": "Panel PromptHmr"
 				},
 				{
-					"line": 1404,
+					"line": 1721,
 					"column": 0,
 					"label": "Panel HaMeR"
 				},
 				{
-					"line": 1725,
+					"line": 2055,
 					"column": 0,
 					"label": "Panel Social Media"
 				},
 				{
-					"line": 1736,
+					"line": 2085,
 					"column": 0,
-					"label": "HubMocapSettings"
+					"label": "Hubmocap Settings"
 				}
 			]
 		}

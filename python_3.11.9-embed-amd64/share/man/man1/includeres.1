@@ -1,0 +1,54 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] [INFILE [OUTFILE]]
+.SH DESCRIPTION
+.PP
+.B includeres
+includes resources (fonts, procsets, patterns, files, etc.) in place of
+.B %%IncludeResource
+comments in a PostScript document.
+The resources are searched for under the resource name, and with an
+appropriate extension.
+The pipeline
+.sp
+.RS
+extractres file.ps | includeres >out.ps
+.RE
+.sp
+will move all resources appearing in a document to the document prologue,
+removing redundant copies.
+The output file can then be put through page re-arrangement filters such as
+.B psnup
+or
+.B pstops
+safely.
+Include resources in a PostScript document.
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH AUTHOR
+.nf
+.SH BUGS
+.B includeres
+does not alter the
+.B %%DocumentNeededResources
+comments.
+.fi

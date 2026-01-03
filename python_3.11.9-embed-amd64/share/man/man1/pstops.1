@@ -1,0 +1,195 @@
+.TH PSUTILS "1" "2025\-07\-07" "psutils 3.3.11" "User Commands"
+.SH NAME
+psutils
+.SH SYNOPSIS
+.B psutils
+[OPTION...] [INFILE [OUTFILE]]
+.SH DESCRIPTION
+Rearrange pages of a PDF or PostScript document.
+PostScript files should follow the Adobe Document Structuring
+Conventions.
+.PP
+.I Pstops
+can be used to perform arbitrary re-arrangements of documents. For many tasks,
+it is simpler to use the other utilities in the PSUtils suite: see
+.BR psutils (1).
+
+.TP
+\fBINFILE\fR
+`\-' or no INFILE argument means standard input
+
+.TP
+\fBOUTFILE\fR
+`\-' or no OUTFILE argument means standard output
+
+.SH OPTIONS
+.TP
+\fB\-S\fR \fI\,SPECS\/\fR, \fB\-\-specs\fR \fI\,SPECS\/\fR
+page specifications (see below)
+
+.TP
+\fB\-R\fR \fI\,PAGERANGE\/\fR, \fB\-\-pages\fR \fI\,PAGERANGE\/\fR
+select the given page ranges
+
+.TP
+\fB\-e\fR, \fB\-\-even\fR
+select even\-numbered output pages
+
+.TP
+\fB\-o\fR, \fB\-\-odd\fR
+select odd\-numbered output pages
+
+.TP
+\fB\-r\fR, \fB\-\-reverse\fR
+reverse the order of the output pages
+
+.TP
+\fB\-p\fR \fI\,PAPER\/\fR, \fB\-\-paper\fR \fI\,PAPER\/\fR
+output paper name or dimensions (WIDTHxHEIGHT)
+
+.TP
+\fB\-P\fR \fI\,INPAPER\/\fR, \fB\-\-inpaper\fR \fI\,INPAPER\/\fR
+input paper name or dimensions (WIDTHxHEIGHT)
+
+.TP
+\fB\-d\fR \fI\,[DIMENSION]\/\fR, \fB\-\-draw\fR \fI\,[DIMENSION]\/\fR
+draw a line of given width (relative to original
+page) around each page [argument defaults to 1pt;
+default is no line; width is fixed for PDF]
+
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show program's version number and exit
+
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+don't show progress
+
+.SH COMMENTS
+PAGES is a comma\-separated list of pages and page ranges.
+
+SPECS is a list of page specifications [default is "0", which selects
+each page in its normal order].
+.PP
+Pagespecs have the following syntax:
+.RS
+.TP 12
+.I pagespecs
+=
+.RI [ modulo\fB:\fP ] specs
+.TP
+.I specs
+=
+.IR spec [ \fB+\fPspecs | \fB,\fPspecs ]
+.TP
+.I spec
+=
+.RB [ - ] \fIpageno\fP [\fItransform...\fP][ @\fIscale\fP ][ ( \fIxoff\fP , \fIyoff\fP ) ]
+.TP
+.I transform
+=
+.BR L | R | U | H | V
+.RE
+.sp
+.I modulo
+is the number of pages in each block.
+The value of
+.I modulo
+should be greater than 0; the default value is 1.
+.PP
+.I specs
+are the page specifications for the pages in each block.
+The value of the
+.I pageno
+in each
+.I spec
+should be between 0 (for the first page in the block) and \fImodulo\fR\-1
+(for the last page in each block) inclusive.
+If there is only one page specification,
+the \fIpageno\fR (0) may be omitted.
+.PP
+The optional dimensions
+.I xoff
+and
+.I yoff
+shift the page by the specified amount.
+.I xoff
+and
+.I yoff
+may either be lengths (see
+.BR psutils (1))
+or followed by
+.B "w"
+or
+.B "h"
+to indicate a multiple of the output page width or height.
+.PP
+The optional transformations
+.BR L ,
+.BR R ,
+.BR U ,
+.BR H ,
+and
+.B V
+rotate the page left, right, or upside-down around its lower left corner,
+and flip (mirror) the page horizontally or vertically respectively.
+The optional
+.I scale
+parameter scales the page by the factor specified.
+If the optional minus sign is specified, the page number is relative to the end of
+the document, instead of the start.
+.PP
+Pages whose
+.IR spec s
+are separated by
+.B +
+will be merged into a single page; otherwise,
+they will remain as separate pages.
+.PP
+The shift, rotation, and scaling are applied
+to the PostScript transformation matrix
+in that order, regardless of the order
+in which they appear on the command line.
+.PP
+Paper size names are converted to dimensions using
+.BR paper (1).
+The output page size, if set, is used (after scaling) to set the
+clipping path for each page.
+.SH EXAMPLES
+To put two A or B series pages (e.g. A4 or B5) on one sheet of paper, the pagespec to use is:
+.sp
+.ce
+2:0L@.7(1w,0)+1L@.7(1w,0.5h)
+.sp
+To select all of the odd pages in reverse order, use:
+.sp
+.ce
+2:-0
+.sp
+To re-arrange pages for printing 2-up booklets, use
+.sp
+.ce
+4:-3L@.7(1w,0h)+0L@.7(1w,0.5h)
+.sp
+for the front sides, and
+.sp
+.ce
+4:1L@.7(1w,0h)+-2L@.7(1w,0.5h)
+.sp
+for the reverse sides, or, for long-edge duplex printing, join the two specs thus:
+.sp
+.ce
+4:-3L@.7(1w,0h)+0L@.7(1w,0.5h),1L@.7(1w,0h)+-2L@.7(1w,0.5h)
+.sp
+For short-edge duplex, the incantation is:
+.sp
+.ce
+4:-3L@.7(1w,0h)+0L@.7(1w,0.5h),1R@.7(0w,0.5h)+-2R@.7(0w,1h)
+.sp
+
+.SH AUTHOR
+.nf
+.SH BUGS
+.B pstops
+does not accept all DSC comments.
+.fi

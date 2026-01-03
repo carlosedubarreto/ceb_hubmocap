@@ -586,6 +586,8 @@ class BackgroundRunner:
         self.task_name = "subprocess"
         # self.status_text = f"Running: {cmd}"
         self.status_text = "Running..."
+        bpy.context.scene.hubmocap_prop.fl_start_exec_time = time.time()
+        bpy.context.scene.hubmocap_prop.fl_end_exec_time = time.time()
         self.progress = 0.0
         self._flag_redraw()
 
@@ -644,12 +646,15 @@ class BackgroundRunner:
         # Pump messages from background to main thread
         pumped = False
         while True:
+            bpy.context.scene.hubmocap_prop.fl_end_exec_time = time.time()
+
             try:
                 kind, msg = self.queue.get_nowait()
             except queue.Empty:
                 break
             pumped = True
             if kind == "log":
+
                 self.last_log = msg
                 print(msg)
                 tot_people_split = msg.split('How many people in the video? ')
@@ -745,8 +750,18 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
     ) # type: ignore # '4dhumans', 'gvhmr', 'gvhmr_ckpt'
 
     def execute(self, context):
+
+        # limpar valores maximos
+        hubmocap_prop = context.scene.hubmocap_prop
+        hubmocap_prop.fl_max_ram = 0.0
+        hubmocap_prop.fl_max_vram = 0.0
+        hubmocap_prop.fl_max_gpu_temp = 0.0
+
+        
+
+
+
         if self.module == '4dhumans':
-            hubmocap_prop = context.scene.hubmocap_prop
             path_4dhumans = hubmocap_prop.path_4dhumans
             path_code = os.path.join(path_4dhumans,'4dhumans','4D-Humans-main')
            
@@ -781,7 +796,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = '../python_embedded/python.exe track.py video.source="example_data/videos/video.mp4"'
         
         if self.module == 'gvhmr_ckpt_dpvo': #downloading gvhmr checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_gvhmr = hubmocap_prop.path_gvhmr
             path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
 
@@ -794,7 +808,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = f'../python_embedded/python.exe ../gdown_file.py 1DE5GVftRCfZOTMp8YWF0xkGudDxK0nr0 {path}'
 
         if self.module == 'gvhmr_ckpt_gvhmr': #downloading gvhmr checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_gvhmr = hubmocap_prop.path_gvhmr
             path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
 
@@ -808,7 +821,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
         
         if self.module == 'gvhmr_ckpt_hmr2': #downloading hmr2 checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_gvhmr = hubmocap_prop.path_gvhmr
             path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
 
@@ -822,7 +834,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'gvhmr_ckpt_vitpose': #downloading vitpose checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_gvhmr = hubmocap_prop.path_gvhmr
             path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
 
@@ -836,7 +847,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'gvhmr_ckpt_yolo': #downloading yolo checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_gvhmr = hubmocap_prop.path_gvhmr
             path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main')
 
@@ -850,7 +860,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
         
         if self.module == 'gvhmr':
-            hubmocap_prop = context.scene.hubmocap_prop
             path_gvhmr = hubmocap_prop.path_gvhmr
             path_code = os.path.join(path_gvhmr,'gvhmr','GVHMR-main') 
            
@@ -895,9 +904,7 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             # hubmocap_prop.path_gvhmr_prev_video_input = video #set the video for the next execution, if its the same video the output folder wont be erased
 
 
-        # TODO: Tentar adicionar consumo de memoria ao executar o script, processamento de gpu e cpu tambe
         if self.module == 'prompthmr':
-            hubmocap_prop = context.scene.hubmocap_prop
             path_prompthmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_prompthmr,'PromptHMR_Portable','PromptHMR-main') 
            
@@ -941,7 +948,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
         ###############################
         ### PromptHMR Checkpoints
         if self.module == 'phmr_ckpt_pmr1': #downloading phmr checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -954,7 +960,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_pmr2': #downloading phmr checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -967,7 +972,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_pmr_vid1': #downloading phmr_vid checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -979,7 +983,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = f'../python_embedded/python.exe ../gdown_file.py 1ArARc4hMpxSSZc0r6JIpXPFkzR6c8uEB {path}'
 
         if self.module == 'phmr_ckpt_pmr_vid2': #downloading phmr_vid checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -992,7 +995,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_sam2_1': #downloading sam2 checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1004,7 +1006,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = f'../python_embedded/python.exe ../gdown_file.py 1KyOwvTE51wel2t-eKnBKdUGju_jHaMpN {path}'
 
         if self.module == 'phmr_ckpt_sam2_2': #downloading sam2 checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1017,7 +1018,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_camcalib': #downloading camcalib checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1029,7 +1029,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = f'../python_embedded/python.exe ../gdown_file.py 1t4tO0OM5s8XDvAzPW-5HaOkQuV3dHBdO {path}'
 
         if self.module == 'phmr_ckpt_droidcalib': #downloading droidcalib checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1042,7 +1041,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_vitpose': #downloading vitpose checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1054,7 +1052,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = f'../python_embedded/python.exe ../gdown_file.py 1ZprPoNXe_f9a9flr0RhS3XCJBfqhFSeE {path}'
 
         if self.module == 'phmr_ckpt_samvit': #downloading vitpose checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1069,7 +1066,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
         ############# PromptHMR Body model files (suplementary)
         if self.module == 'phmr_ckpt_bm_j_regressor': #downloading body model j regressor checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1081,7 +1077,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_bm_smplmean': #downloading body model smpl mean checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1094,7 +1089,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
 
 
         if self.module == 'phmr_ckpt_bm_smplx2smpl_joint': #downloading body_models smplx2smpl_joints.npy checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1107,7 +1101,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             
 
         if self.module == 'phmr_ckpt_bm_smplx2smpl': #downloading body_models smplx2smpl checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1119,7 +1112,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
             command = f'../python_embedded/python.exe ../gdown_file.py 1B9LtDH_mMWJZn5P2QnG_3PeQtHSIKOPg {path}'
 
         if self.module == 'phmr_ckpt_bm_smplx_neutral_array': #downloading vitpose checkpoints
-            hubmocap_prop = context.scene.hubmocap_prop
             path_phmr = hubmocap_prop.path_prompthmr
             path_code = os.path.join(path_phmr,'PromptHMR_Portable','PromptHMR-main')
 
@@ -1134,7 +1126,6 @@ class OPS_OT_run_subprocess(bpy.types.Operator):
         ###############################
         ########## Hamer ##############
         if self.module == 'hamer':
-            hubmocap_prop = context.scene.hubmocap_prop
             path_hamer = hubmocap_prop.path_hamer
             path_code = os.path.join(path_hamer,'Hamer_Portable','hamer') 
            
@@ -1317,6 +1308,11 @@ class ImportCharacter(Operator):
             # # Convert multple pkl files generated from Hamer to a single one wiht optimized organization
             # base_file = os.path.join(path_code,'demo_out','result_000_*.pkl')
             # command = f'../python_embedded/python hamer_multi_pkl_to_single.py --input {base_file}'
+
+            # converter multi para single pkl
+            bpy.ops.hubmocap.show_hamer_data()
+
+
             file_single_pkl = os.path.join(path_code_hamer,'demo_out',video_name_hamer,'_Hammer_Final_to_convert.pkl')
 
             if hubmocap_prop.enum_hamer_body =='no_body':
