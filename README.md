@@ -5,24 +5,14 @@ Blender addon that uses modules to run mocap
 ## Modules
 The modules are files with python embeded that is fully installed with everything needed for the code to run (that is why there are modules for each code, since they need different library)
 
-- [4d humans module](https://carlosedubarreto.gumroad.com/l/py_embed_4dhumans) (Paid)
-- [GVHMR](https://carlosedubarreto.gumroad.com/l/py_embed_gvhmr) (Paid)
-- [PromptHMR](https://carlosedubarreto.gumroad.com/l/py_embed_prompthmr) (Paid)
-- [HaMeR](https://carlosedubarreto.gumroad.com/l/py_embed_hamer) (Paid)
+- [4d humans module](https://github.com/carlosedubarreto/ceb_hubmocap/releases/tag/4dhumans) - [Offical repository](https://github.com/shubham-goel/4D-Humans)
+- [GVHMR](https://github.com/carlosedubarreto/ceb_hubmocap/releases/tag/gvhmr)  - [Offical repository](https://github.com/zju3dv/GVHMR)
+- [PromptHMR](https://github.com/carlosedubarreto/ceb_hubmocap/releases/tag/prompthmr) - [Offical repository](https://github.com/yufu-wang/PromptHMR)
+- [HaMeR](https://github.com/carlosedubarreto/ceb_hubmocap/releases/tag/hamer) - [Offical repository](https://github.com/geopavlakos/hamer)
 
-
-### Free or discount
-- **Bought CEB 4d Humans:** If you purchased CEB 4D Humans, contact me and I'll give you the 4d humans module for free.
-
-- **Patreon:** If you are or were a Patreon supporter for **CEB Studios** , let me know and you'll get a full or partial discount (depending on the subscription tier and amount of time, like if you are subscribed to $1 tier for 2 months, you'll get $2 discount)
-
-
-## Free alternative: Make the module yourself
-To make a module you'll need to install the python packages using  python embeded.
-
-It's more complicated than the usual python installation (but not that much), if enough people show interest I can share more information explaining how to do it, so you can be able to use the addon.
-
-Instructions might change depending on the module, since it was needed to make the code to wrap all the dependencies into one folder (some projects like 4d humans uses the windows user folder to store some data, and I had to change the code.)
+## Important
+- Check the license of the code you want to use to be sure on what you can use. 
+- TL;DR: If you plan to use commercially, as far as I know *none* of the libraries can be used. Some are because of the code, others are because of the code and some dependencies, like SMPL model.
 
 ## What the addon does?
 - Make it simple to install the module without touching code.
